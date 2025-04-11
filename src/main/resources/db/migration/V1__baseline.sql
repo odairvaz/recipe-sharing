@@ -1,0 +1,2 @@
+-- No schema changes yet.
+-- This is just a baseline marker for Flyway.
