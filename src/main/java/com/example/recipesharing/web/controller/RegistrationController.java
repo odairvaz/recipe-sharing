@@ -71,7 +71,7 @@ public class RegistrationController {
         if (optionalToken.isPresent()) {
             VerificationToken verificationToken = optionalToken.get();
             if (verificationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-                model.addAttribute("registrationSuccessMsg", "Your registration token has expired.");
+                model.addAttribute("registrationErrorMsg", "Your registration token has expired.");
                 return "registration/verification_expired";
             }
             User user = optionalToken.get().getUser();
