@@ -50,14 +50,13 @@ public class IUserServiceImpl implements IUserService {
 
     @Override
     public Optional<VerificationToken> getVerificationToken(String verificationToken) {
-        return Optional.of(tokenRepository.findByToken(verificationToken));
+        return Optional.ofNullable(tokenRepository.findByToken(verificationToken));
     }
 
     @Override
     public void saveRegisteredUser(User user) {
         userRepository.save(user);
     }
-
 
     private boolean emailExists(final String email) {
         return userRepository.findByEmail(email).isPresent();
