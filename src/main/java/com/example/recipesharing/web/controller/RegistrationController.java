@@ -4,6 +4,7 @@ import com.example.recipesharing.persistense.model.User;
 import com.example.recipesharing.registration.listener.OnRegistrationCompleteEvent;
 import com.example.recipesharing.service.ActivationResult;
 import com.example.recipesharing.service.IUserService;
+import com.example.recipesharing.service.impl.FileStorageService;
 import com.example.recipesharing.web.dto.UserDto;
 import com.example.recipesharing.web.error.UserAlreadyExistException;
 import jakarta.validation.Valid;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.Locale;
@@ -35,11 +37,13 @@ public class RegistrationController {
     private final IUserService userService;
     private final ApplicationEventPublisher eventPublisher;
     private final MessageSource messageSource;
+    private final FileStorageService fileStorageService;
 
-    public RegistrationController(IUserService userService, ApplicationEventPublisher eventPublisher, MessageSource messageSource) {
+    public RegistrationController(IUserService userService, ApplicationEventPublisher eventPublisher, MessageSource messageSource, FileStorageService fileStorageService) {
         this.userService = userService;
         this.eventPublisher = eventPublisher;
         this.messageSource = messageSource;
+        this.fileStorageService = fileStorageService;
     }
 
     @GetMapping
@@ -49,7 +53,7 @@ public class RegistrationController {
     }
 
     @PostMapping
-    public String registerUser(@ModelAttribute("registrationRequest") @Valid UserDto registrationRequest, BindingResult bindingResult, Locale locale, Model model) {
+    public String registerUser(@ModelAttribute("registrationRequest") @Valid UserDto registrationRequest, BindingResult bindingResult, @RequestParam("avatarFile") MultipartFile avatarFile, Locale locale, Model model) {
 
         if (bindingResult.hasErrors()) {
             return VIEW_REGISTRATION_FORM;
@@ -57,6 +61,11 @@ public class RegistrationController {
 
         try {
             User registeredUser = userService.registerNewUserAccount(registrationRequest);
+            if (avatarFile != null && !avatarFile.isEmpty()) {
+                String avatarUrl = fileStorageService.storeFile(avatarFile);
+                registeredUser.setAvatarUrl(avatarUrl);
+                userService.saveRegisteredUser(registeredUser);
+            }
             String applicationUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
             eventPublisher.publishEvent(new OnRegistrationCompleteEvent(registeredUser, applicationUrl, null));
         } catch (UserAlreadyExistException uaeEx) {

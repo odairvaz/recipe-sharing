@@ -35,17 +35,17 @@ public class IUserServiceImpl implements IUserService {
     }
 
     @Override
-    public User registerNewUserAccount(UserDto userDto) {
-        if (emailExists(userDto.getEmail())) {
-            throw new UserAlreadyExistException("There is an account with that email address: " + userDto.getEmail());
+    public User registerNewUserAccount(UserDto registrationRequest) {
+        if (emailExists(registrationRequest.getEmail())) {
+            throw new UserAlreadyExistException("There is an account with that email address: " + registrationRequest.getEmail());
         }
         final User user = new User();
 
-        user.setFirstName(userDto.getFirstName());
-        user.setLastName(userDto.getLastName());
-        user.setBio(userDto.getBio());
-        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
-        user.setEmail(userDto.getEmail());
+        user.setFirstName(registrationRequest.getFirstName());
+        user.setLastName(registrationRequest.getLastName());
+        user.setBio(registrationRequest.getBio());
+        user.setEmail(registrationRequest.getEmail());
+        user.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
         return userRepository.save(user);
     }
 

@@ -32,6 +32,4 @@ public class UserDto {
 
     private String bio;
 
-    private String avatarUrl;
-
 }
