@@ -16,7 +16,7 @@
     <div class="card-body">
         <h3 class="card-title mb-4 text-center">Register</h3>
 
-        <form method="post" th:action="${'/api/register'}" th:object="${registrationRequest}">
+        <form method="post" th:action="${'/register'}" th:object="${registrationRequest}" enctype="multipart/form-data">
             <div class="mb-3">
                 <label class="form-label" for="fNameInput">First Name</label>
                 <input class="form-control" id="fNameInput" th:field="*{firstName}" required="required" />
@@ -53,7 +53,7 @@
 
             <div class="form-group">
                 <label for="avatarFile">Avatar URL</label>
-                <input type="file" class="form-control-file" id="avatarFile">
+                <input type="file" class="form-control-file" th:field="*{avatarUrl}" id="avatarFile">
             </div>
 
             <button type="submit" class="btn btn-primary w-100 mt-4">Register</button>

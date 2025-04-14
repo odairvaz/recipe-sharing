@@ -1,86 +1,100 @@
 package com.example.recipesharing.web.controller;
 
 import com.example.recipesharing.persistense.model.User;
-import com.example.recipesharing.persistense.model.VerificationToken;
 import com.example.recipesharing.registration.listener.OnRegistrationCompleteEvent;
+import com.example.recipesharing.service.ActivationResult;
 import com.example.recipesharing.service.IUserService;
 import com.example.recipesharing.web.dto.UserDto;
 import com.example.recipesharing.web.error.UserAlreadyExistException;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.Locale;
 
 @Controller
-@RequestMapping("/api")
+@RequestMapping("/register")
 public class RegistrationController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RegistrationController.class);
 
+    private static final String VIEW_REGISTRATION_FORM = "registration/form";
+    private static final String VIEW_REGISTRATION_SUCCESS = "registration/success";
+    private static final String VIEW_REGISTRATION_ERROR = "registration/error";
+    private static final String VIEW_VERIFICATION_EXPIRED = "registration/verification_expired";
+    private static final String VIEW_VERIFICATION_SUCCESS = "registration/verification_success";
+    private static final String VIEW_VERIFICATION_INVALID_TOKEN = "registration/verification_invalid_token";
+
     private final IUserService userService;
     private final ApplicationEventPublisher eventPublisher;
+    private final MessageSource messageSource;
 
-
-    public RegistrationController(IUserService userService, ApplicationEventPublisher eventPublisher) {
+    public RegistrationController(IUserService userService, ApplicationEventPublisher eventPublisher, MessageSource messageSource) {
         this.userService = userService;
         this.eventPublisher = eventPublisher;
+        this.messageSource = messageSource;
     }
 
-    @GetMapping("/register")
+    @GetMapping
     public String displayRegistrationForm(Model model) {
         model.addAttribute("registrationRequest", new UserDto());
-        return "registration/form";
+        return VIEW_REGISTRATION_FORM;
     }
 
-    @PostMapping("/register")
-    public String registerUser(@ModelAttribute("registrationRequest") @Valid UserDto registrationRequest, BindingResult bindingResult, HttpServletRequest request, Model model) {
+    @PostMapping
+    public String registerUser(@ModelAttribute("registrationRequest") @Valid UserDto registrationRequest, BindingResult bindingResult, Locale locale, Model model) {
 
         if (bindingResult.hasErrors()) {
-            return "registration/form";
+            return VIEW_REGISTRATION_FORM;
         }
 
         try {
             User registeredUser = userService.registerNewUserAccount(registrationRequest);
             String applicationUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-            eventPublisher.publishEvent(new OnRegistrationCompleteEvent(registeredUser, request.getLocale(), applicationUrl, null));
+            eventPublisher.publishEvent(new OnRegistrationCompleteEvent(registeredUser, applicationUrl, null));
         } catch (UserAlreadyExistException uaeEx) {
             LOGGER.error("User email already exists: {}", registrationRequest.getEmail(), uaeEx);
-            bindingResult.rejectValue("email", "error.user", "There is already a user registered with the email provided.");
-            return "registration/form";
+            bindingResult.rejectValue("email", "error.user");
+            return VIEW_REGISTRATION_FORM;
         } catch (RuntimeException ex) {
             LOGGER.error("Unable to register user ", ex);
-            model.addAttribute("registrationErrorMsg", "An error occurred when sending the email!");
-            return "registration/error";
+            String errorMsg = messageSource.getMessage("message.reg.error.generic", null, locale);
+            model.addAttribute("registrationErrorMsg", errorMsg);
+            return VIEW_REGISTRATION_ERROR;
         }
-        model.addAttribute("registrationSuccessMsg", "You registered successfully. We will send you a confirmation message to your email account.");
-        return "registration/success";
+        String successMsg = messageSource.getMessage("message.reg.success", null, locale);
+        model.addAttribute("registrationSuccessMsg", successMsg);
+        return VIEW_REGISTRATION_SUCCESS;
     }
 
-    @GetMapping("/register/confirm")
-    public String confirmRegistration(@RequestParam("token") String token, Model model) {
-        Optional<VerificationToken> optionalToken = userService.getVerificationToken(token);
-        if (optionalToken.isPresent()) {
-            VerificationToken verificationToken = optionalToken.get();
-            if (verificationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-                model.addAttribute("registrationErrorMsg", "Your registration token has expired.");
-                return "registration/verification_expired";
-            }
-            User user = optionalToken.get().getUser();
-            user.setEnabled(true);
-            userService.saveRegisteredUser(user);
-            model.addAttribute("registrationSuccessMsg", "Your account has been activated successfully. You can now log in");
-            return "registration/verification_success";
+    @GetMapping("/confirm")
+    public String confirmRegistration(@RequestParam("token") String token, Model model, Locale locale) {
+        ActivationResult result = userService.activateUserByToken(token);
+        switch (result) {
+            case ALREADY_ACTIVE:
+            case SUCCESS:
+                String successMsg = messageSource.getMessage("message.confirm.success", null, locale);
+                model.addAttribute("registrationSuccessMsg", successMsg);
+                return VIEW_VERIFICATION_SUCCESS;
+
+            case TOKEN_EXPIRED:
+                String expiredMsg = messageSource.getMessage("message.confirm.error.expired", null, locale);
+                model.addAttribute("registrationErrorMsg", expiredMsg);
+                return VIEW_VERIFICATION_EXPIRED;
+
+            case TOKEN_INVALID:
+            default:
+                String invalidMsg = messageSource.getMessage("message.confirm.error.invalidToken", null, locale);
+                model.addAttribute("registrationErrorMsg", invalidMsg);
+                return VIEW_VERIFICATION_INVALID_TOKEN;
         }
-        return "redirect:/api/register/success";
     }
 
 }
