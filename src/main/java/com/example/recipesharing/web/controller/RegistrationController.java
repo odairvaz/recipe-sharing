@@ -3,9 +3,11 @@ package com.example.recipesharing.web.controller;
 import com.example.recipesharing.persistense.model.User;
 import com.example.recipesharing.registration.listener.OnRegistrationCompleteEvent;
 import com.example.recipesharing.service.ActivationResult;
+import com.example.recipesharing.service.IFileStorageService;
 import com.example.recipesharing.service.IUserService;
-import com.example.recipesharing.service.impl.FileStorageService;
+import com.example.recipesharing.service.impl.LocalFileStorageServiceImpl;
 import com.example.recipesharing.web.dto.UserDto;
+import com.example.recipesharing.web.error.InvalidFileException;
 import com.example.recipesharing.web.error.UserAlreadyExistException;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -19,7 +21,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.io.IOException;
 import java.util.Locale;
+import java.util.UUID;
 
 @Controller
 @RequestMapping("/register")
@@ -37,9 +41,10 @@ public class RegistrationController {
     private final IUserService userService;
     private final ApplicationEventPublisher eventPublisher;
     private final MessageSource messageSource;
-    private final FileStorageService fileStorageService;
+    private final IFileStorageService fileStorageService;
 
-    public RegistrationController(IUserService userService, ApplicationEventPublisher eventPublisher, MessageSource messageSource, FileStorageService fileStorageService) {
+
+    public RegistrationController(IUserService userService, ApplicationEventPublisher eventPublisher, MessageSource messageSource, LocalFileStorageServiceImpl fileStorageService) {
         this.userService = userService;
         this.eventPublisher = eventPublisher;
         this.messageSource = messageSource;
@@ -53,19 +58,30 @@ public class RegistrationController {
     }
 
     @PostMapping
-    public String registerUser(@ModelAttribute("registrationRequest") @Valid UserDto registrationRequest, BindingResult bindingResult, @RequestParam("avatarFile") MultipartFile avatarFile, Locale locale, Model model) {
+    public String registerUser(@ModelAttribute("registrationRequest") @Valid UserDto registrationRequest,
+                               BindingResult bindingResult,
+                               @RequestParam("avatarFile") MultipartFile avatarFile,
+                               Locale locale, Model model) {
 
         if (bindingResult.hasErrors()) {
             return VIEW_REGISTRATION_FORM;
         }
 
-        try {
-            User registeredUser = userService.registerNewUserAccount(registrationRequest);
-            if (avatarFile != null && !avatarFile.isEmpty()) {
-                String avatarUrl = fileStorageService.storeFile(avatarFile);
-                registeredUser.setAvatarUrl(avatarUrl);
-                userService.saveRegisteredUser(registeredUser);
+        String avatarUrl = null;
+
+        if (avatarFile != null && !avatarFile.isEmpty()) {
+            try {
+                String filenamePrefix = UUID.randomUUID().toString();
+                avatarUrl = fileStorageService.storeAvatar(avatarFile, filenamePrefix);
+            } catch (InvalidFileException | IOException ex) {
+                LOGGER.warn("Avatar upload failed for user {}: {}", registrationRequest.getEmail(), ex.getMessage());
+                bindingResult.reject("error.avatar.upload", ex.getMessage());
+                return VIEW_REGISTRATION_FORM;
             }
+        }
+
+        try {
+            User registeredUser = userService.registerNewUserAccount(registrationRequest, avatarUrl);
             String applicationUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
             eventPublisher.publishEvent(new OnRegistrationCompleteEvent(registeredUser, applicationUrl, null));
         } catch (UserAlreadyExistException uaeEx) {

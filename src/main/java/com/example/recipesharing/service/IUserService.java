@@ -6,7 +6,7 @@ import com.example.recipesharing.web.error.UserAlreadyExistException;
 
 public interface IUserService {
 
-    User registerNewUserAccount(UserDto userDto) throws UserAlreadyExistException;
+    User registerNewUserAccount(UserDto userDto, String avatarUrl) throws UserAlreadyExistException;
 
     void createVerificationToken(final User user, final String token);
 

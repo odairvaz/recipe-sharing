@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface VerificationTokenRepository extends CrudRepository<VerificationToken, Long> {
+public interface IVerificationTokenRepository extends CrudRepository<VerificationToken, Long> {
 
     Optional<VerificationToken> findByToken(String token);
 
