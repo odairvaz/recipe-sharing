@@ -2,7 +2,10 @@ package com.example.recipesharing.persistense.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -40,6 +43,8 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    private boolean enabled = false;
+
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Recipe> recipes = new ArrayList<>();
 
@@ -49,7 +54,7 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Favorite> favorites = new ArrayList<>();
 
-    public User(String firstName, String lastName, String email, String password, String bio, String avatarUrl, List<Recipe> recipes, List<Review> reviews, List<Favorite> favorites) {
+    public User(String firstName, String lastName, String email, String password, String bio, String avatarUrl, List<Recipe> recipes, List<Review> reviews, List<Favorite> favorites, boolean enabled) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -59,6 +64,8 @@ public class User {
         this.recipes = recipes;
         this.reviews = reviews;
         this.favorites = favorites;
+        this.enabled = enabled;
     }
+
 }
 
