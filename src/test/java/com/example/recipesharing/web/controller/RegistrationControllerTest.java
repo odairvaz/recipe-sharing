@@ -4,6 +4,7 @@ import com.example.recipesharing.config.SecurityConfig;
 import com.example.recipesharing.persistense.model.User;
 import com.example.recipesharing.registration.listener.OnRegistrationCompleteEvent;
 import com.example.recipesharing.registration.listener.RegistrationListener;
+import com.example.recipesharing.service.ActivationResult;
 import com.example.recipesharing.service.IFileStorageService;
 import com.example.recipesharing.service.IUserService;
 import com.example.recipesharing.web.dto.UserDto;
@@ -249,4 +250,113 @@ class RegistrationControllerTest {
         then(userService).should().registerNewUserAccount(any(UserDto.class), eq(mockAvatarUrl));
         then(eventPublisher).shouldHaveNoInteractions();
     }
+
+    @Test
+    @DisplayName("POST /register with invalid data should return form view")
+    void registerUser_WithInvalidData_ShouldRegisterAndReturnError() throws Exception {
+        validUserDto.setPassword("123");
+        String mockAvatarUrl = "/avatars/mock-uuid.png";
+
+        given(fileStorageService.storeAvatar(any(MockMultipartFile.class), anyString()))
+                .willReturn(mockAvatarUrl);
+        given(userService.registerNewUserAccount(any(UserDto.class), eq(mockAvatarUrl)))
+                .willReturn(registeredUser);
+
+        mockMvc.perform(multipart("/register")
+                        .file(mockAvatarFile)
+                        .flashAttr("registrationRequest", validUserDto)
+                        .locale(Locale.ENGLISH)
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(view().name(VIEW_REGISTRATION_FORM))
+                .andExpect(model().hasErrors());
+
+        then(fileStorageService).should(never()).storeAvatar(any(), anyString());
+        then(userService).should(never()).registerNewUserAccount(any(UserDto.class), eq(mockAvatarUrl));
+
+        ArgumentCaptor<OnRegistrationCompleteEvent> eventCaptor =
+                ArgumentCaptor.forClass(OnRegistrationCompleteEvent.class);
+        then(registrationListener).should(times(0)).onApplicationEvent(eventCaptor.capture());
+    }
+
+    @Test
+    @DisplayName("GET /confirm with valid token should activate user and return success view")
+    void confirmRegistration_WithValidToken_ShouldReturnViewSuccess() throws Exception {
+        String token = "valid-token-123";
+        String expectedSuccessMessage = "Activation successful message.";
+
+        given(userService.activateUserByToken(token))
+                .willReturn(ActivationResult.SUCCESS);
+
+        mockMvc.perform(get("/register/confirm")
+                .param("token", token)
+                        .locale(Locale.ENGLISH))
+                .andExpect(status().isOk())
+                .andExpect(view().name(VIEW_VERIFICATION_SUCCESS))
+        .andExpect(model().attribute("registrationSuccessMsg", expectedSuccessMessage))
+        .andExpect(model().hasNoErrors());
+
+        then(userService).should().activateUserByToken(eq(token));
+    }
+
+    @Test
+    @DisplayName("GET /confirm with already active token should activate user and return success view")
+    void confirmRegistration_WithAlreadyActiveToken_ShouldReturnViewSuccess() throws Exception {
+        String token = "already-active-token-123";
+        String expectedSuccessMessage = "Activation successful message.";
+
+        given(userService.activateUserByToken(token))
+                .willReturn(ActivationResult.ALREADY_ACTIVE);
+
+        mockMvc.perform(get("/register/confirm")
+                        .param("token", token)
+                        .locale(Locale.ENGLISH))
+                .andExpect(status().isOk())
+                .andExpect(view().name(VIEW_VERIFICATION_SUCCESS))
+                .andExpect(model().attribute("registrationSuccessMsg", expectedSuccessMessage))
+                .andExpect(model().hasNoErrors());
+
+        then(userService).should().activateUserByToken(eq(token));
+    }
+
+    @Test
+    @DisplayName("GET /confirm with expired token should return expired view")
+    void confirmRegistration_WithExpiredToken_ShouldReturnViewExpired() throws Exception {
+        String token = "expired-token-123";
+        String expectedExpiredMessage = "Token expired message.";
+
+        given(userService.activateUserByToken(token))
+                .willReturn(ActivationResult.TOKEN_EXPIRED);
+
+        mockMvc.perform(get("/register/confirm")
+                        .param("token", token)
+                        .locale(Locale.ENGLISH))
+                .andExpect(status().isOk())
+                .andExpect(view().name(VIEW_VERIFICATION_EXPIRED))
+                .andExpect(model().attribute("registrationErrorMsg", expectedExpiredMessage))
+                .andExpect(model().hasNoErrors());
+
+        then(userService).should().activateUserByToken(eq(token));
+    }
+
+    @Test
+    @DisplayName("GET /confirm with invalid token should return invalid view")
+    void confirmRegistration_WithInvalidToken_ShouldReturnViewInvalid() throws Exception {
+        String token = "invalid-token-123";
+        String expectedInvalidMessage = "Invalid token message.";
+
+        given(userService.activateUserByToken(token))
+                .willReturn(ActivationResult.TOKEN_INVALID);
+
+        mockMvc.perform(get("/register/confirm")
+                        .param("token", token)
+                        .locale(Locale.ENGLISH))
+                .andExpect(status().isOk())
+                .andExpect(view().name(VIEW_VERIFICATION_INVALID_TOKEN))
+                .andExpect(model().attribute("registrationErrorMsg", expectedInvalidMessage))
+                .andExpect(model().hasNoErrors());
+
+        then(userService).should().activateUserByToken(eq(token));
+    }
+
 }

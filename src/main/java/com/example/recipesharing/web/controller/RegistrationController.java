@@ -69,7 +69,7 @@ public class RegistrationController {
 
         String avatarUrl = null;
 
-        if (avatarFile != null && !avatarFile.isEmpty()) {
+        if (!avatarFile.isEmpty()) {
             try {
                 String filenamePrefix = UUID.randomUUID().toString();
                 avatarUrl = fileStorageService.storeAvatar(avatarFile, filenamePrefix);
