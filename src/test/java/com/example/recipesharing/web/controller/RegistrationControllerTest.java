@@ -1,6 +1,7 @@
 package com.example.recipesharing.web.controller;
 
 import com.example.recipesharing.config.SecurityConfig;
+import com.example.recipesharing.constants.ViewName;
 import com.example.recipesharing.persistense.model.User;
 import com.example.recipesharing.registration.listener.OnRegistrationCompleteEvent;
 import com.example.recipesharing.registration.listener.RegistrationListener;
@@ -27,6 +28,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Locale;
 
+import static com.example.recipesharing.constants.ViewName.*;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -41,14 +43,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(SecurityConfig.class)
 @TestPropertySource(properties = { "logDir=./build/test-logs" })
 class RegistrationControllerTest {
-
-    private static final String VIEW_REGISTRATION_FORM = "registration/form";
-    private static final String VIEW_REGISTRATION_SUCCESS = "registration/success";
-    private static final String VIEW_REGISTRATION_ERROR = "registration/error";
-    private static final String VIEW_VERIFICATION_EXPIRED = "registration/verification_expired";
-    private static final String VIEW_VERIFICATION_SUCCESS = "registration/verification_success";
-    private static final String VIEW_VERIFICATION_INVALID_TOKEN = "registration/verification_invalid_token";
-
 
     @Autowired
     private MockMvc mockMvc;

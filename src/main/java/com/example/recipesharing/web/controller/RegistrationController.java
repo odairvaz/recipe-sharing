@@ -1,5 +1,6 @@
 package com.example.recipesharing.web.controller;
 
+import com.example.recipesharing.constants.ViewName;
 import com.example.recipesharing.persistense.model.User;
 import com.example.recipesharing.registration.listener.OnRegistrationCompleteEvent;
 import com.example.recipesharing.service.ActivationResult;
@@ -25,24 +26,18 @@ import java.io.IOException;
 import java.util.Locale;
 import java.util.UUID;
 
+import static com.example.recipesharing.constants.ViewName.*;
+
 @Controller
 @RequestMapping("/register")
 public class RegistrationController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RegistrationController.class);
 
-    private static final String VIEW_REGISTRATION_FORM = "registration/form";
-    private static final String VIEW_REGISTRATION_SUCCESS = "registration/success";
-    private static final String VIEW_REGISTRATION_ERROR = "registration/error";
-    private static final String VIEW_VERIFICATION_EXPIRED = "registration/verification_expired";
-    private static final String VIEW_VERIFICATION_SUCCESS = "registration/verification_success";
-    private static final String VIEW_VERIFICATION_INVALID_TOKEN = "registration/verification_invalid_token";
-
     private final IUserService userService;
     private final ApplicationEventPublisher eventPublisher;
     private final MessageSource messageSource;
     private final IFileStorageService fileStorageService;
-
 
     public RegistrationController(IUserService userService, ApplicationEventPublisher eventPublisher, MessageSource messageSource, IFileStorageService fileStorageService) {
         this.userService = userService;
