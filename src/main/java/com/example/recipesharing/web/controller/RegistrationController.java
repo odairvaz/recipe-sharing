@@ -44,7 +44,7 @@ public class RegistrationController {
     private final IFileStorageService fileStorageService;
 
 
-    public RegistrationController(IUserService userService, ApplicationEventPublisher eventPublisher, MessageSource messageSource, LocalFileStorageServiceImpl fileStorageService) {
+    public RegistrationController(IUserService userService, ApplicationEventPublisher eventPublisher, MessageSource messageSource, IFileStorageService fileStorageService) {
         this.userService = userService;
         this.eventPublisher = eventPublisher;
         this.messageSource = messageSource;
