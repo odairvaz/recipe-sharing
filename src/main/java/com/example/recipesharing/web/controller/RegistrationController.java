@@ -1,12 +1,10 @@
 package com.example.recipesharing.web.controller;
 
-import com.example.recipesharing.constants.ViewName;
 import com.example.recipesharing.persistense.model.User;
 import com.example.recipesharing.registration.listener.OnRegistrationCompleteEvent;
 import com.example.recipesharing.service.ActivationResult;
 import com.example.recipesharing.service.IFileStorageService;
 import com.example.recipesharing.service.IUserService;
-import com.example.recipesharing.service.impl.LocalFileStorageServiceImpl;
 import com.example.recipesharing.web.dto.UserDto;
 import com.example.recipesharing.web.error.InvalidFileException;
 import com.example.recipesharing.web.error.UserAlreadyExistException;
