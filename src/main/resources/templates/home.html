@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - Recipe Sharing</title>
-</head>
-<body>
-    <h1>Welcome to Recipe Sharing!</h1>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: page_head('Home - Recipe Sharing')}"></head>
+<body class="d-flex justify-content-center align-items-center vh-100 bg-light">
+
+<div class="card shadow p-4" style="width: 100%; max-width: 450px;">
+    <div class="card-body">
+        <h1>Welcome to Recipe Sharing!</h1>
+    </div>
+</div>
+<div th:replace="~{fragments/scripts :: footer_scripts}"></div>
 </body>
 </html>
