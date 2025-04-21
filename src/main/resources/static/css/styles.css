@@ -1,7 +1,8 @@
 
 body {
-    background-color: #000409;
+    background-color: rgba(var(248, 249, 250),var(1)) !important;
 }
+
 .login-container {
     max-width: 400px;
     margin-top: 50px;
