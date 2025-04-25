@@ -1,74 +1,82 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" layout:decorate="~{layout/main-layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Recipe Title</title>
+</head>
 
-<head th:replace="~{fragments/header :: page_head(${recipe.title})}"></head> <body>
+<div layout:fragment="content">
 
-<div class="container mt-4 mb-5">
+    <div class="container mt-4 mb-5">
 
-    <h1 class="display-5 mb-3" th:text="${recipe.title}">Recipe Title</h1>
+        <h1 class="display-5 mb-3" th:text="${recipe.title}">Recipe Title</h1>
 
-    <div class="mb-4 text-muted">
+        <div class="mb-4 text-muted">
             <span>
                 <i class="fas fa-user me-1"></i> Posted by <strong th:text="${recipe.authorFirstName}">Author</strong>
             </span>
-        <span class="mx-2">|</span>
-        <span>
-                <i class="fas fa-calendar-alt me-1"></i> <span th:text="${#temporals.format(recipe.createdAt, 'dd MMM yyyy')}">Publish Date</span>
+            <span class="mx-2">|</span>
+            <span>
+                <i class="fas fa-calendar-alt me-1"></i> <span
+                    th:text="${#temporals.format(recipe.createdAt, 'dd MMM yyyy')}">Publish Date</span>
             </span>
-        <span class="mx-2" th:if="${recipe.category != null and !recipe.category.isEmpty()}">|</span>
-        <span th:if="${recipe.category != null and !recipe.category.isEmpty()}">
+            <span class="mx-2" th:if="${recipe.category != null and !recipe.category.isEmpty()}">|</span>
+            <span th:if="${recipe.category != null and !recipe.category.isEmpty()}">
                 <i class="fas fa-tag me-1"></i> <span class="badge bg-info text-dark" th:text="${recipe.category}">Category</span>
             </span>
-    </div>
-
-    <div class="mb-4 text-center">
-        <img th:if="${recipe.imageUrl != null and !recipe.imageUrl.isEmpty()}"
-             th:src="${recipe.imageUrl}"
-             class="img-fluid rounded shadow-sm"
-             style="max-height: 450px;"
-             th:alt="${recipe.title}" />
-        <img th:unless="${recipe.imageUrl != null and !recipe.imageUrl.isEmpty()}"
-             th:src="@{/images/placeholder-large.png}" class="img-fluid rounded shadow-sm"
-             style="max-height: 450px;"
-             alt="Recipe placeholder image" />
-    </div>
-
-    <div class="mb-4 lead" th:if="${recipe.description != null and !recipe.description.isEmpty()}">
-        <p th:text="${recipe.description}">Full recipe description goes here.</p>
-    </div>
-
-    <div class="row g-5 mb-4">
-        <div class="col-md-5">
-            <h3 class="border-bottom pb-2 mb-3">Ingredients</h3>
-            <div style="white-space: pre-wrap;" th:text="${recipe.ingredients}">Ingredient list...</div>
-        </div>
-        <div class="col-md-7">
-            <h3 class="border-bottom pb-2 mb-3">Instructions</h3>
-            <div style="white-space: pre-wrap;" th:text="${recipe.instructions}">Cooking instructions...</div>
-        </div>
-    </div>
-
-    <hr class="my-4">
-    <div class="reviews-section">
-        <h3 class="mb-3">Reviews (<span th:text="${#lists.size(recipe.reviews)}">0</span>)</h3>
-
-        <div th:if="${#lists.isEmpty(recipe.reviews)}" class="alert alert-secondary" role="alert">
-            Be the first to review this recipe!
         </div>
 
-        <div th:unless="${#lists.isEmpty(recipe.reviews)}" class="list-group">
-            <div class="list-group-item list-group-item-action flex-column align-items-start mb-2 border rounded"
-                 th:each="review : ${recipe.reviews}">
-                <div class="d-flex w-100 justify-content-between">
-                    <h5 class="mb-1" th:text="${review.reviewerUsername}">Reviewer Name</h5>
-                    <small th:text="${#temporals.format(review.reviewDate, 'dd MMM yyyy')}">Review Date</small>
-                </div>
-                <p class="mb-1">Rating: <strong th:text="${review.rating} + ' / 5'">4 / 5</strong></p>
-                <p class="mb-1" th:text="${review.comment}">Review comment text goes here.</p>
+        <div class="mb-4 text-center">
+            <img class="img-fluid rounded shadow-sm"
+                 style="max-height: 450px;"
+                 th:alt="${recipe.title}"
+                 th:if="${recipe.imageUrl != null and !recipe.imageUrl.isEmpty()}"
+                 th:src="${recipe.imageUrl}"/>
+            <img alt="Recipe placeholder image"
+                 class="img-fluid rounded shadow-sm" style="max-height: 450px;"
+                 th:src="@{/images/placeholder-large.png}"
+                 th:unless="${recipe.imageUrl != null and !recipe.imageUrl.isEmpty()}"/>
+        </div>
+
+        <div class="mb-4 lead" th:if="${recipe.description != null and !recipe.description.isEmpty()}">
+            <p th:text="${recipe.description}">Full recipe description goes here.</p>
+        </div>
+
+        <div class="row g-5 mb-4">
+            <div class="col-md-5">
+                <h3 class="border-bottom pb-2 mb-3">Ingredients</h3>
+                <div style="white-space: pre-wrap;" th:text="${recipe.ingredients}">Ingredient list...</div>
+            </div>
+            <div class="col-md-7">
+                <h3 class="border-bottom pb-2 mb-3">Instructions</h3>
+                <div style="white-space: pre-wrap;" th:text="${recipe.instructions}">Cooking instructions...</div>
             </div>
         </div>
 
-    </div></div><div th:replace="~{fragments/scripts :: footer_scripts}"></div>
+        <hr class="my-4">
+        <div class="reviews-section">
+            <h3 class="mb-3">Reviews (<span th:text="${#lists.size(recipe.reviews)}">0</span>)</h3>
 
-</body>
+            <div class="alert alert-secondary" role="alert" th:if="${#lists.isEmpty(recipe.reviews)}">
+                Be the first to review this recipe!
+            </div>
+
+            <div class="list-group" th:unless="${#lists.isEmpty(recipe.reviews)}">
+                <div class="list-group-item list-group-item-action flex-column align-items-start mb-2 border rounded"
+                     th:each="review : ${recipe.reviews}">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1" th:text="${review.reviewerUsername}">Reviewer Name</h5>
+                        <small th:text="${#temporals.format(review.reviewDate, 'dd MMM yyyy')}">Review Date</small>
+                    </div>
+                    <p class="mb-1">Rating: <strong th:text="${review.rating} + ' / 5'">4 / 5</strong></p>
+                    <p class="mb-1" th:text="${review.comment}">Review comment text goes here.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
 </html>
