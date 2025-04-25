@@ -5,10 +5,12 @@ import com.example.recipesharing.persistense.model.Recipe;
 import com.example.recipesharing.persistense.model.User;
 import com.example.recipesharing.security.core.userdetails.RecipeUserDetails;
 import com.example.recipesharing.service.IRecipeService;
+import com.example.recipesharing.service.IReviewService;
 import com.example.recipesharing.service.IUserService;
 import com.example.recipesharing.web.dto.RecipeCreateRequestDto;
 import com.example.recipesharing.web.dto.RecipeDetailDto;
 import com.example.recipesharing.web.dto.RecipeSummaryDto;
+import com.example.recipesharing.web.dto.ReviewSubmissionDto;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,10 +37,12 @@ public class RecipeController {
 
     private final IRecipeService recipeService;
     private final IUserService userService;
+    private final IReviewService reviewService;
 
-    public RecipeController(IRecipeService recipeService, IUserService userService) {
+    public RecipeController(IRecipeService recipeService, IUserService userService, IReviewService reviewService) {
         this.recipeService = recipeService;
         this.userService = userService;
+        this.reviewService = reviewService;
     }
 
     @GetMapping({"/", "/home"})
@@ -97,7 +101,50 @@ public class RecipeController {
                 });
 
         model.addAttribute("recipe", recipeDto);
+
+        if (!model.containsAttribute("newReview")) {
+            model.addAttribute("newReview", ReviewSubmissionDto.empty());
+        }
         return VIEW_RECIPE_DETAIL;
+    }
+
+    @PostMapping("/recipe/{recipeId}/reviews")
+    public String addReview(@PathVariable Long recipeId,
+                            @Valid @ModelAttribute("newReview") ReviewSubmissionDto reviewDto,
+                            BindingResult bindingResult,
+                            @AuthenticationPrincipal RecipeUserDetails currentUserDetails,
+                            RedirectAttributes redirectAttributes,
+                            Model model) {
+
+        LOGGER.info("Received review submission for recipe ID {}: {}", recipeId, reviewDto);
+
+        if (currentUserDetails == null) {
+            LOGGER.warn("Unauthenticated user attempted to submit review for recipe ID {}", recipeId);
+            redirectAttributes.addFlashAttribute("error", "You must be logged in to submit a review.");
+            return "redirect:/login";
+        }
+
+        if (bindingResult.hasErrors()) {
+            LOGGER.warn("Validation errors submitting review for recipe ID {}: {}", recipeId, bindingResult.getAllErrors());
+            RecipeDetailDto recipeDto = recipeService.findRecipeDetailById(recipeId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recipe not found"));
+            model.addAttribute("recipe", recipeDto);
+            return VIEW_RECIPE_DETAIL;
+        }
+
+        try {
+            User author = userService.findUserByEmail(currentUserDetails.getEmail())
+                    .orElseThrow(() -> new RuntimeException("Authenticated user not found:"));
+
+            reviewService.addReview(recipeId, reviewDto, author);
+            redirectAttributes.addFlashAttribute("reviewSuccess", "Your review has been submitted successfully!");
+            LOGGER.info("Review added successfully for recipe ID {} by user {}", recipeId, author.getEmail());
+
+        } catch (Exception e) {
+            LOGGER.error("Unexpected error adding review for recipe ID {}: {}", recipeId, e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("reviewError", "An unexpected error occurred while submitting your review.");
+        }
+        return "redirect:/recipe/" + recipeId;
     }
 
 }

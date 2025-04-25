@@ -3,80 +3,98 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Recipe Title</title>
+    <title th:text="${recipe.title} + ' - Recipe Details'">Recipe Details</title>
 </head>
 
-<div layout:fragment="content">
+<body> <div layout:fragment="content">
 
     <div class="container mt-4 mb-5">
 
         <h1 class="display-5 mb-3" th:text="${recipe.title}">Recipe Title</h1>
 
         <div class="mb-4 text-muted">
-            <span>
-                <i class="fas fa-user me-1"></i> Posted by <strong th:text="${recipe.authorFirstName}">Author</strong>
-            </span>
+            <span><i class="fas fa-user me-1"></i> Posted by <strong th:text="${recipe.authorFirstName}">Author</strong></span>
             <span class="mx-2">|</span>
-            <span>
-                <i class="fas fa-calendar-alt me-1"></i> <span
-                    th:text="${#temporals.format(recipe.createdAt, 'dd MMM yyyy')}">Publish Date</span>
-            </span>
+            <span><i class="fas fa-calendar-alt me-1"></i> <span th:text="${#temporals.format(recipe.createdAt, 'dd MMM yy')}">Date</span></span>
             <span class="mx-2" th:if="${recipe.category != null and !recipe.category.isEmpty()}">|</span>
-            <span th:if="${recipe.category != null and !recipe.category.isEmpty()}">
-                <i class="fas fa-tag me-1"></i> <span class="badge bg-info text-dark" th:text="${recipe.category}">Category</span>
-            </span>
+            <span th:if="${recipe.category != null and !recipe.category.isEmpty()}"><i class="fas fa-tag me-1"></i> <span class="badge bg-info text-dark" th:text="${recipe.category}">Category</span></span>
         </div>
 
         <div class="mb-4 text-center">
-            <img class="img-fluid rounded shadow-sm"
-                 style="max-height: 450px;"
-                 th:alt="${recipe.title}"
-                 th:if="${recipe.imageUrl != null and !recipe.imageUrl.isEmpty()}"
-                 th:src="${recipe.imageUrl}"/>
-            <img alt="Recipe placeholder image"
-                 class="img-fluid rounded shadow-sm" style="max-height: 450px;"
-                 th:src="@{/images/placeholder-large.png}"
-                 th:unless="${recipe.imageUrl != null and !recipe.imageUrl.isEmpty()}"/>
+            <img class="img-fluid rounded shadow-sm" style="max-height: 450px;" th:alt="${recipe.title}" th:if="${recipe.imageUrl != null and !recipe.imageUrl.isEmpty()}" th:src="${recipe.imageUrl}"/>
+            <img alt="Recipe placeholder image" class="img-fluid rounded shadow-sm" style="max-height: 450px;" th:src="@{/images/placeholder-large.png}" th:unless="${recipe.imageUrl != null and !recipe.imageUrl.isEmpty()}"/>
         </div>
 
         <div class="mb-4 lead" th:if="${recipe.description != null and !recipe.description.isEmpty()}">
-            <p th:text="${recipe.description}">Full recipe description goes here.</p>
+            <p th:text="${recipe.description}">Description</p>
         </div>
 
         <div class="row g-5 mb-4">
             <div class="col-md-5">
                 <h3 class="border-bottom pb-2 mb-3">Ingredients</h3>
-                <div style="white-space: pre-wrap;" th:text="${recipe.ingredients}">Ingredient list...</div>
+                <div style="white-space: pre-wrap;" th:text="${recipe.ingredients}">Ingredients</div>
             </div>
             <div class="col-md-7">
                 <h3 class="border-bottom pb-2 mb-3">Instructions</h3>
-                <div style="white-space: pre-wrap;" th:text="${recipe.instructions}">Cooking instructions...</div>
+                <div style="white-space: pre-wrap;" th:text="${recipe.instructions}">Instructions</div>
             </div>
         </div>
 
         <hr class="my-4">
+
         <div class="reviews-section">
             <h3 class="mb-3">Reviews (<span th:text="${#lists.size(recipe.reviews)}">0</span>)</h3>
 
             <div class="alert alert-secondary" role="alert" th:if="${#lists.isEmpty(recipe.reviews)}">
                 Be the first to review this recipe!
             </div>
-
-            <div class="list-group" th:unless="${#lists.isEmpty(recipe.reviews)}">
+            <div class="list-group mb-4" th:unless="${#lists.isEmpty(recipe.reviews)}">
                 <div class="list-group-item list-group-item-action flex-column align-items-start mb-2 border rounded"
                      th:each="review : ${recipe.reviews}">
                     <div class="d-flex w-100 justify-content-between">
-                        <h5 class="mb-1" th:text="${review.reviewerUsername}">Reviewer Name</h5>
-                        <small th:text="${#temporals.format(review.reviewDate, 'dd MMM yyyy')}">Review Date</small>
+                        <h5 class="mb-1" th:text="${review.reviewerFirstName}">Reviewer Name</h5>
+                        <small th:text="${#temporals.format(review.reviewDate, 'dd MMM yy')}">Review Date</small>
                     </div>
                     <p class="mb-1">Rating: <strong th:text="${review.rating} + ' / 5'">4 / 5</strong></p>
                     <p class="mb-1" th:text="${review.comment}">Review comment text goes here.</p>
                 </div>
             </div>
 
-        </div>
-    </div>
+            <div> <h4 class="mt-4 mb-3">Leave a Review</h4>
 
-</div>
+                <div th:if="${#fields.hasErrors('newReview.*')}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    Please correct the errors below.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
 
+                <form th:action="@{/recipe/{id}/reviews(id=${recipe.id})}"
+                      method="post"
+                      th:object="${newReview}" >
+
+                    <div class="mb-3">
+                        <label for="rating" class="form-label">Your Rating</label>
+                        <select class="form-select" id="rating" th:field="*{rating}" required th:classappend="${#fields.hasErrors('rating')} ? 'is-invalid'">
+                            <option value="" selected disabled>Choose rating...</option>
+                            <option value="5">5 Stars (Excellent)</option>
+                            <option value="4">4 Stars (Good)</option>
+                            <option value="3">3 Stars (Average)</option>
+                            <option value="2">2 Stars (Fair)</option>
+                            <option value="1">1 Star (Poor)</option>
+                        </select>
+                        <div th:if="${#fields.hasErrors('rating')}" class="invalid-feedback">
+                            <p th:each="err : ${#fields.errors('rating')}" th:text="${err}"></p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">Your Review</label>
+                        <textarea class="form-control" id="comment" rows="3" th:field="*{comment}" required th:classappend="${#fields.hasErrors('comment')} ? 'is-invalid'" placeholder="Share your experience..."></textarea>
+                        <div th:if="${#fields.hasErrors('comment')}" class="invalid-feedback">
+                            <p th:each="err : ${#fields.errors('comment')}" th:text="${err}"></p>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Submit Review</button>
+                </form>
+            </div> </div></div></div> </body>
 </html>
