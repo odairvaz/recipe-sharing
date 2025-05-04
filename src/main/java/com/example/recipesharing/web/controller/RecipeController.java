@@ -3,6 +3,7 @@ package com.example.recipesharing.web.controller;
 
 import com.example.recipesharing.persistense.model.Recipe;
 import com.example.recipesharing.persistense.model.User;
+import com.example.recipesharing.persistense.model.enums.RecipeCategory;
 import com.example.recipesharing.security.core.userdetails.RecipeUserDetails;
 import com.example.recipesharing.service.IRecipeService;
 import com.example.recipesharing.service.IReviewService;
@@ -61,6 +62,7 @@ public class RecipeController {
     @GetMapping("/recipe/add")
     public String displayRecipeForm(Model model) {
         model.addAttribute("recipeRequest", RecipeCreateRequestDto.empty());
+        model.addAttribute("allCategories", RecipeCategory.values());
         return VIEW_RECIPE_FORM;
     }
 

@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="en"
-      xmlns:th="http://www.thymeleaf.org"
+      layout:decorate="~{layout/main-layout}"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      layout:decorate="~{layout/main-layout}">
+      xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <title th:text="${recipe.title} + ' - Recipe Details'">Recipe Details</title>
@@ -21,9 +20,11 @@
             <span class="mx-2">|</span>
             <span><i class="fas fa-calendar-alt me-1"></i> <span
                     th:text="${#temporals.format(recipe.createdAt, 'dd MMM yy')}">Date</span></span>
-            <span class="mx-2" th:if="${recipe.category != null and !recipe.category.isEmpty()}">|</span>
-            <span th:if="${recipe.category != null and !recipe.category.isEmpty()}"><i
-                    class="fas fa-tag me-1"></i> <span class="badge bg-info text-dark" th:text="${recipe.category}">Category</span></span>
+            <span class="mx-2" th:if="${recipe.category != null and !recipe.category.displayName.isEmpty()}">|</span>
+            <span th:if="${recipe.category != null}">
+                <i class="fas fa-tag me-1"></i>
+                <span class="badge bg-info text-dark"
+                    th:text="${recipe.category.displayName}">Category</span> </span>
         </div>
 
         <div class="mb-4 text-center">

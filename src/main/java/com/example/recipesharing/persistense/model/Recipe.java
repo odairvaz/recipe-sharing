@@ -1,5 +1,6 @@
 package com.example.recipesharing.persistense.model;
 
+import com.example.recipesharing.persistense.model.enums.RecipeCategory;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
@@ -34,7 +35,8 @@ public class Recipe {
     @Column(columnDefinition = "TEXT")
     private String instructions;
 
-    private String category;
+    @Enumerated(EnumType.STRING)
+    private RecipeCategory category;
 
     private String imageUrl;
 
@@ -52,7 +54,7 @@ public class Recipe {
     @Setter(AccessLevel.NONE)
     private LocalDateTime createdAt;
 
-    public Recipe(String title, String description, String ingredients, String instructions, String category, String imageUrl, User author, List<Review> reviews, List<Favorite> favorites) {
+    public Recipe(String title, String description, String ingredients, String instructions, RecipeCategory category, String imageUrl, User author, List<Review> reviews, List<Favorite> favorites) {
         this.title = title;
         this.description = description;
         this.ingredients = ingredients;

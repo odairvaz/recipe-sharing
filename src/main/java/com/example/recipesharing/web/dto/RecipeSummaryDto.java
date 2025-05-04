@@ -1,5 +1,7 @@
 package com.example.recipesharing.web.dto;
 
+import com.example.recipesharing.persistense.model.enums.RecipeCategory;
+
 import java.time.LocalDateTime;
 
 public record RecipeSummaryDto(
@@ -7,7 +9,7 @@ public record RecipeSummaryDto(
         String title,
         String description,
         String imageUrl,
-        String category,
+        RecipeCategory category,
         String authorFirstName,
         String authorLastName,
         String authorEmail,

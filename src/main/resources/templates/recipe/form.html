@@ -65,10 +65,22 @@
                             </div>
                         </div>
 
-                        <div class="mb-3">
+                        <!--<div class="mb-3">
                             <label class="form-label" for="categoryInput">Category</label>
                             <input class="form-control" th:classappend="${#fields.hasErrors('category')} ? 'is-invalid'"
                                    id="categoryInput" th:field="*{category}"/>
+                            <div th:if="${#fields.hasErrors('category')}" class="invalid-feedback">
+                                <p th:each="err : ${#fields.errors('category')}" th:text="${err}"></p>
+                            </div>
+                        </div>
+-->
+                        <div class="mb-3">
+                            <label for="categorySelect" class="form-label">Category</label>
+                            <select class="form-select" id="categorySelect" th:field="*{category}"
+                                    th:classappend="${#fields.hasErrors('category')} ? 'is-invalid'">
+                                <option value="" selected>-- Select Category --</option> <option th:each="cat : ${allCategories}"
+                                                                                                 th:value="${cat}" th:text="${cat.displayName}"> Category Name </option>
+                            </select>
                             <div th:if="${#fields.hasErrors('category')}" class="invalid-feedback">
                                 <p th:each="err : ${#fields.errors('category')}" th:text="${err}"></p>
                             </div>

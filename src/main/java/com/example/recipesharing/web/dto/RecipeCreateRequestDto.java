@@ -1,5 +1,6 @@
 package com.example.recipesharing.web.dto;
 
+import com.example.recipesharing.persistense.model.enums.RecipeCategory;
 import jakarta.validation.constraints.NotBlank;
 
 public record RecipeCreateRequestDto(
@@ -14,9 +15,9 @@ public record RecipeCreateRequestDto(
         @NotBlank(message = "Instructions cannot be blank")
         String instructions,
 
-        String category
+        RecipeCategory category
 ) {
     public static RecipeCreateRequestDto empty() {
-        return new RecipeCreateRequestDto("", "", "", "", "");
+        return new RecipeCreateRequestDto("", "", "", "", null);
     }
 }
