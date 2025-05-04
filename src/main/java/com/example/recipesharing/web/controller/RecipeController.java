@@ -116,7 +116,7 @@ public class RecipeController {
                             RedirectAttributes redirectAttributes,
                             Model model) {
 
-        LOGGER.info("Received review submission for recipe ID {}: {}", recipeId, reviewDto);
+        LOGGER.debug("Received review submission for recipe ID {}: {}", recipeId, reviewDto);
 
         if (currentUserDetails == null) {
             LOGGER.warn("Unauthenticated user attempted to submit review for recipe ID {}", recipeId);
