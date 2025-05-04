@@ -130,6 +130,7 @@ public class IRecipeServiceImpl implements IRecipeService {
     private ReviewDto mapToReviewDto(Review review) {
         User reviewAuthor = review.getUser();
         return new ReviewDto(
+                review.getId(),
                 review.getRating(),
                 review.getComment(),
                 reviewAuthor.getFirstName(),

@@ -1,12 +1,16 @@
 <!DOCTYPE html>
-<html lang="en" layout:decorate="~{layout/main-layout}"
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      xmlns:th="http://www.thymeleaf.org">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout/main-layout}">
+
 <head>
     <title th:text="${recipe.title} + ' - Recipe Details'">Recipe Details</title>
 </head>
 
-<body> <div layout:fragment="content">
+<body>
+<div layout:fragment="content">
 
     <div class="container mt-4 mb-5">
 
@@ -15,14 +19,19 @@
         <div class="mb-4 text-muted">
             <span><i class="fas fa-user me-1"></i> Posted by <strong th:text="${recipe.authorFirstName}">Author</strong></span>
             <span class="mx-2">|</span>
-            <span><i class="fas fa-calendar-alt me-1"></i> <span th:text="${#temporals.format(recipe.createdAt, 'dd MMM yy')}">Date</span></span>
+            <span><i class="fas fa-calendar-alt me-1"></i> <span
+                    th:text="${#temporals.format(recipe.createdAt, 'dd MMM yy')}">Date</span></span>
             <span class="mx-2" th:if="${recipe.category != null and !recipe.category.isEmpty()}">|</span>
-            <span th:if="${recipe.category != null and !recipe.category.isEmpty()}"><i class="fas fa-tag me-1"></i> <span class="badge bg-info text-dark" th:text="${recipe.category}">Category</span></span>
+            <span th:if="${recipe.category != null and !recipe.category.isEmpty()}"><i
+                    class="fas fa-tag me-1"></i> <span class="badge bg-info text-dark" th:text="${recipe.category}">Category</span></span>
         </div>
 
         <div class="mb-4 text-center">
-            <img class="img-fluid rounded shadow-sm" style="max-height: 450px;" th:alt="${recipe.title}" th:if="${recipe.imageUrl != null and !recipe.imageUrl.isEmpty()}" th:src="${recipe.imageUrl}"/>
-            <img alt="Recipe placeholder image" class="img-fluid rounded shadow-sm" style="max-height: 450px;" th:src="@{/images/placeholder-large.png}" th:unless="${recipe.imageUrl != null and !recipe.imageUrl.isEmpty()}"/>
+            <img class="img-fluid rounded shadow-sm" style="max-height: 450px;" th:alt="${recipe.title}"
+                 th:if="${recipe.imageUrl != null and !recipe.imageUrl.isEmpty()}" th:src="${recipe.imageUrl}"/>
+            <img alt="Recipe placeholder image" class="img-fluid rounded shadow-sm" style="max-height: 450px;"
+                 th:src="@{/images/placeholder-large.png}"
+                 th:unless="${recipe.imageUrl != null and !recipe.imageUrl.isEmpty()}"/>
         </div>
 
         <div class="mb-4 lead" th:if="${recipe.description != null and !recipe.description.isEmpty()}">
@@ -53,48 +62,73 @@
                      th:each="review : ${recipe.reviews}">
                     <div class="d-flex w-100 justify-content-between">
                         <h5 class="mb-1" th:text="${review.reviewerFirstName}">Reviewer Name</h5>
-                        <small th:text="${#temporals.format(review.reviewDate, 'dd MMM yy')}">Review Date</small>
+                        <small th:text="${#temporals.format(review.reviewDate, 'dd MMM yy')}">Date</small>
                     </div>
-                    <p class="mb-1">Rating: <strong th:text="${review.rating} + ' / 5'">4 / 5</strong></p>
-                    <p class="mb-1" th:text="${review.comment}">Review comment text goes here.</p>
+                    <p class="mb-1">Rating: <strong th:text="${review.rating} + ' / 5'">Rating</strong></p>
+                    <p class="mb-1" th:text="${review.comment}">Comment</p>
+
+                    <div class="mt-2 text-end"
+                         th:if="${#authentication.principal.email == review.reviewerEmail}">
+                        <form class="d-inline"
+                              method="post"
+                              th:action="@{/recipe/{recipeId}/reviews/{reviewId}(recipeId=${recipe.id}, reviewId=${review.id})}">
+                            <input name="_method" type="hidden" value="delete"/>
+                            <button class="btn btn-sm btn-outline-danger"
+                                    onclick="return confirm('Are you sure you want to delete this review?');"
+                                    type="submit">
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+
                 </div>
             </div>
 
-            <div> <h4 class="mt-4 mb-3">Leave a Review</h4>
+            <div><h4 class="mt-4 mb-3">Leave a Review</h4>
 
-                <div th:if="${#fields.hasErrors('newReview.*')}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert"
+                     th:if="${#fields.hasErrors('newReview.*')}">
                     Please correct the errors below.
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <button aria-label="Close" class="btn-close" data-bs-dismiss="alert" type="button"></button>
                 </div>
 
-                <form th:action="@{/recipe/{id}/reviews(id=${recipe.id})}"
-                      method="post"
-                      th:object="${newReview}" >
+                <form method="post"
+                      th:action="@{/recipe/{id}/reviews(id=${recipe.id})}"
+                      th:object="${newReview}">
 
                     <div class="mb-3">
-                        <label for="rating" class="form-label">Your Rating</label>
-                        <select class="form-select" id="rating" th:field="*{rating}" required th:classappend="${#fields.hasErrors('rating')} ? 'is-invalid'">
-                            <option value="" selected disabled>Choose rating...</option>
+                        <label class="form-label" for="rating">Your Rating</label>
+                        <select class="form-select" id="rating" required
+                                th:classappend="${#fields.hasErrors('rating')} ? 'is-invalid'"
+                                th:field="*{rating}">
+                            <option disabled selected value="">Choose rating...</option>
                             <option value="5">5 Stars (Excellent)</option>
                             <option value="4">4 Stars (Good)</option>
                             <option value="3">3 Stars (Average)</option>
                             <option value="2">2 Stars (Fair)</option>
                             <option value="1">1 Star (Poor)</option>
                         </select>
-                        <div th:if="${#fields.hasErrors('rating')}" class="invalid-feedback">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('rating')}">
                             <p th:each="err : ${#fields.errors('rating')}" th:text="${err}"></p>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="comment" class="form-label">Your Review</label>
-                        <textarea class="form-control" id="comment" rows="3" th:field="*{comment}" required th:classappend="${#fields.hasErrors('comment')} ? 'is-invalid'" placeholder="Share your experience..."></textarea>
-                        <div th:if="${#fields.hasErrors('comment')}" class="invalid-feedback">
+                        <label class="form-label" for="comment">Your Review</label>
+                        <textarea class="form-control" id="comment" placeholder="Share your experience..." required
+                                  rows="3"
+                                  th:classappend="${#fields.hasErrors('comment')} ? 'is-invalid'"
+                                  th:field="*{comment}"></textarea>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('comment')}">
                             <p th:each="err : ${#fields.errors('comment')}" th:text="${err}"></p>
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary">Submit Review</button>
+                    <button class="btn btn-primary" type="submit">Submit Review</button>
                 </form>
-            </div> </div></div></div> </body>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
 </html>

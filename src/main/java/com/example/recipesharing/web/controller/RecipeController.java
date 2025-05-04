@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -144,6 +145,28 @@ public class RecipeController {
             LOGGER.error("Unexpected error adding review for recipe ID {}: {}", recipeId, e.getMessage(), e);
             redirectAttributes.addFlashAttribute("reviewError", "An unexpected error occurred while submitting your review.");
         }
+        return "redirect:/recipe/" + recipeId;
+    }
+
+    @PostMapping("/recipe/{recipeId}/reviews/{reviewId}")
+    public String deleteReview(@PathVariable Long recipeId,
+                               @PathVariable Long reviewId,
+                               @AuthenticationPrincipal RecipeUserDetails currentUserDetails,
+                               RedirectAttributes redirectAttributes) {
+
+        try {
+            reviewService.deleteReview(reviewId, currentUserDetails.getEmail());
+            redirectAttributes.addFlashAttribute("reviewSuccess", "Review deleted successfully.");
+            LOGGER.debug("Review ID {} deleted successfully by user {}", reviewId, currentUserDetails.getEmail());
+
+        } catch (AccessDeniedException e) {
+            LOGGER.warn("Unauthorized attempt by user {} to delete review ID {}", currentUserDetails.getEmail(), reviewId);
+            redirectAttributes.addFlashAttribute("reviewError", "Could not delete review: You are not the owner.");
+        } catch (Exception e) {
+            LOGGER.error("Error deleting review ID {}: {}", reviewId, e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("reviewError", "An error occurred while deleting the review.");
+        }
+
         return "redirect:/recipe/" + recipeId;
     }
 
