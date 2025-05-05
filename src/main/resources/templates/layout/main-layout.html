@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head th:replace="~{fragments/header :: page_head(~{::title})}">
+    <title>Default Application Title</title>
+</head>
+<body>
+
+<header th:replace="~{fragments/navbar :: navbar}"></header>
+
+<main class="container mt-4 mb-5 flex-grow-1">
+    <div layout:fragment="content">
+        <p>Default page content goes here if specific page doesn't provide it.</p>
+    </div>
+</main>
+
+<div th:replace="~{fragments/scripts :: footer_scripts}"></div>
+
+</body>
+</html>

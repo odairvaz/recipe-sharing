@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+<head>
+    <title>Add New Recipe</title>
+</head>
+
+<div layout:fragment="content">
+
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8 col-xl-7">
+            <div class="card shadow-sm p-3 p-md-4">
+                <div class="card-body">
+                    <h3 class="card-title mb-4 text-center">Add New Recipe</h3>
+
+                    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                        <span th:text="${success}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <span th:text="${error}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
+                    <form method="post" th:action="@{/recipe/add}" th:object="${recipeRequest}"
+                          enctype="multipart/form-data">
+
+                        <div class="mb-3">
+                            <label class="form-label" for="fTitleInput">Title</label>
+                            <input class="form-control" th:classappend="${#fields.hasErrors('title')} ? 'is-invalid'"
+                                   id="fTitleInput" th:field="*{title}" required/>
+                            <div th:if="${#fields.hasErrors('title')}" class="invalid-feedback">
+                                <p th:each="err : ${#fields.errors('title')}" th:text="${err}"></p>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="descriptionInput" class="form-label">Description</label>
+                            <textarea class="form-control"
+                                      th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"
+                                      id="descriptionInput" th:field="*{description}" rows="3"></textarea>
+                            <div th:if="${#fields.hasErrors('description')}" class="invalid-feedback">
+                                <p th:each="err : ${#fields.errors('description')}" th:text="${err}"></p>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="ingredientInput" class="form-label">Ingredients</label>
+                            <textarea class="form-control"
+                                      th:classappend="${#fields.hasErrors('ingredients')} ? 'is-invalid'"
+                                      id="ingredientInput" th:field="*{ingredients}" rows="4" required></textarea>
+                            <div th:if="${#fields.hasErrors('ingredients')}" class="invalid-feedback">
+                                <p th:each="err : ${#fields.errors('ingredients')}" th:text="${err}"></p>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="instructionInput" class="form-label">Instructions</label>
+                            <textarea class="form-control"
+                                      th:classappend="${#fields.hasErrors('instructions')} ? 'is-invalid'"
+                                      id="instructionInput" th:field="*{instructions}" rows="5" required></textarea>
+                            <div th:if="${#fields.hasErrors('instructions')}" class="invalid-feedback">
+                                <p th:each="err : ${#fields.errors('instructions')}" th:text="${err}"></p>
+                            </div>
+                        </div>
+
+                        <!--<div class="mb-3">
+                            <label class="form-label" for="categoryInput">Category</label>
+                            <input class="form-control" th:classappend="${#fields.hasErrors('category')} ? 'is-invalid'"
+                                   id="categoryInput" th:field="*{category}"/>
+                            <div th:if="${#fields.hasErrors('category')}" class="invalid-feedback">
+                                <p th:each="err : ${#fields.errors('category')}" th:text="${err}"></p>
+                            </div>
+                        </div>
+-->
+                        <div class="mb-3">
+                            <label for="categorySelect" class="form-label">Category</label>
+                            <select class="form-select" id="categorySelect" th:field="*{category}"
+                                    th:classappend="${#fields.hasErrors('category')} ? 'is-invalid'">
+                                <option value="" selected>-- Select Category --</option> <option th:each="cat : ${allCategories}"
+                                                                                                 th:value="${cat}" th:text="${cat.displayName}"> Category Name </option>
+                            </select>
+                            <div th:if="${#fields.hasErrors('category')}" class="invalid-feedback">
+                                <p th:each="err : ${#fields.errors('category')}" th:text="${err}"></p>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="recipeImage" class="form-label">Recipe Image</label>
+                            <input class="form-control" id="recipeImage" name="recipeImage" type="file"
+                                   accept="image/*">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 mt-4">Add Recipe</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</html>

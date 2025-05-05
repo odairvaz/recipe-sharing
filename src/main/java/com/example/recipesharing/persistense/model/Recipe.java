@@ -1,11 +1,9 @@
 package com.example.recipesharing.persistense.model;
 
+import com.example.recipesharing.persistense.model.enums.RecipeCategory;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -15,6 +13,8 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@EqualsAndHashCode(exclude = {"author", "reviews", "favorites"})
+@ToString(exclude = {"author", "reviews", "favorites"})
 public class Recipe {
 
     @Id
@@ -35,7 +35,8 @@ public class Recipe {
     @Column(columnDefinition = "TEXT")
     private String instructions;
 
-    private String category;
+    @Enumerated(EnumType.STRING)
+    private RecipeCategory category;
 
     private String imageUrl;
 
@@ -50,9 +51,10 @@ public class Recipe {
     private List<Favorite> favorites = new ArrayList<>();
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Setter(AccessLevel.NONE)
+    private LocalDateTime createdAt;
 
-    public Recipe(String title, String description, String ingredients, String instructions, String category, String imageUrl, User author, List<Review> reviews, List<Favorite> favorites) {
+    public Recipe(String title, String description, String ingredients, String instructions, RecipeCategory category, String imageUrl, User author, List<Review> reviews, List<Favorite> favorites) {
         this.title = title;
         this.description = description;
         this.ingredients = ingredients;
@@ -63,4 +65,20 @@ public class Recipe {
         this.reviews = reviews;
         this.favorites = favorites;
     }
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
+
+    public void addReview(Review review) {
+        reviews.add(review);
+        review.setRecipe(this);
+    }
+
+    public void removeReview(Review review) {
+        reviews.remove(review);
+        review.setRecipe(null);
+    }
+
 }
