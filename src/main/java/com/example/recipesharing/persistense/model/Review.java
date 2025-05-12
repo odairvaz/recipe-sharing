@@ -3,7 +3,10 @@ package com.example.recipesharing.persistense.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
@@ -34,13 +37,18 @@ public class Review {
     private String comment;
 
     @Column(name ="created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
 
     public Review(Recipe recipe, User user, int rating, String comment) {
         this.recipe = recipe;
         this.user = user;
         this.rating = rating;
         this.comment = comment;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
     }
 
 }

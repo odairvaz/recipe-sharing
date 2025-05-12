@@ -2,6 +2,7 @@ package com.example.recipesharing.service.impl;
 
 import com.example.recipesharing.persistense.model.User;
 import com.example.recipesharing.persistense.repository.IUserRepository;
+import com.example.recipesharing.security.core.userdetails.RecipeUserDetails;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,7 +28,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 () -> new UsernameNotFoundException("No user found with the email: " + email));
 
         Collection<? extends GrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"));
-        return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), user.isEnabled(), true, true, true, authorities);
+        return new RecipeUserDetails(user.getFirstName() ,user.getEmail(), user.getPassword(), authorities);
     }
 
 }

@@ -11,9 +11,4 @@ public class AuthController {
         return "login/form";
     }
 
-    @GetMapping("/home")
-    public String home() {
-        return "home";
-    }
-
 }

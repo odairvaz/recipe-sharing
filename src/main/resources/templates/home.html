@@ -1,13 +1,80 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/header :: page_head('Home - Recipe Sharing')}"></head>
-<body class="d-flex justify-content-center align-items-center vh-100 bg-light">
+<html lang="en" layout:decorate="~{layout/main-layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Recipe Home - Discover Recipes</title>
+</head>
 
-<div class="card shadow p-4" style="width: 100%; max-width: 450px;">
-    <div class="card-body">
-        <h1>Welcome to Recipe Sharing!</h1>
+<body>
+
+<div layout:fragment="content">
+
+    <h1 class="mb-4 text-center">Discover Recipes</h1>
+
+    <div class="alert alert-success alert-dismissible fade show" role="alert" th:if="${success}">
+        <span th:text="${success}"></span>
+        <button aria-label="Close" class="btn-close" data-bs-dismiss="alert" type="button"></button>
+    </div>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${error}">
+        <span th:text="${error}"></span>
+        <button aria-label="Close" class="btn-close" data-bs-dismiss="alert" type="button"></button>
+    </div>
+
+    <div class="alert alert-info text-center" role="alert" th:if="${recipePage == null or recipePage.empty}">
+        No recipes found. Why not <a th:href="@{/recipe/add}">add one</a>?
+    </div>
+
+    <div th:if="${recipePage != null and recipePage.hasContent()}">
+        <div class="list-container">
+            <div class="d-flex border rounded shadow-sm mb-4 p-3 bg-white" th:each="recipe : ${recipePage.content}">
+                <div class="flex-shrink-0 me-3" style="width: 150px;">
+                    <a th:href="@{/recipe/{id}(id=${recipe.id})}">
+                        <img class="img-fluid rounded"
+                             style="object-fit: cover; height: 120px; width: 100%;" th:alt="${recipe.title}"
+                             th:src="${recipe.imageUrl != null and !recipe.imageUrl.isEmpty() ? recipe.imageUrl : '/images/placeholder.png'}"/>
+                    </a>
+                </div>
+                <div class="flex-grow-1 d-flex flex-column">
+                    <div>
+                        <h5 class="mb-1"><a class="text-decoration-none text-dark" th:href="@{/recipe/{id}(id=${recipe.id})}"
+                                            th:text="${recipe.title}">Recipe Title</a></h5>
+                        <p class="mb-2 text-muted" style="font-size: 0.9rem;"
+                           th:text="${#strings.abbreviate(recipe.description, 150)}">Description</p>
+                    </div>
+                    <div class="mt-auto d-flex justify-content-between align-items-center pt-2 border-top">
+                        <small class="text-muted">
+                            By: <span th:text="${recipe.authorFirstName}">Author</span>
+                            <span class="ms-2 badge bg-secondary"
+                                  th:if="${recipe.category != null}"
+                                  th:text="${recipe.category.displayName}">Category</span> </small>
+                        <a class="btn btn-sm btn-outline-primary" th:href="@{/recipe/{id}(id=${recipe.id})}">View
+                            Recipe</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <nav aria-label="Recipe navigation" class="mt-4 d-flex justify-content-center"
+             th:if="${recipePage.totalPages > 1}">
+            <ul class="pagination">
+                <li class="page-item" th:classappend="${recipePage.isFirst()} ? 'disabled'">
+                    <a aria-label="Previous" class="page-link"
+                       th:href="@{/(page=${recipePage.number - 1}, size=${recipePage.size})}">&laquo;</a>
+                </li>
+                <li class="page-item"
+                    th:classappend="${pageNumber == recipePage.number} ? 'active'"
+                    th:each="pageNumber : ${#numbers.sequence( T(java.lang.Math).max(0, recipePage.number - 2), T(java.lang.Math).min(recipePage.totalPages - 1, recipePage.number + 2) )}">
+                    <a class="page-link" th:href="@{/(page=${pageNumber}, size=${recipePage.size})}"
+                       th:text="${pageNumber + 1}">1</a>
+                </li>
+                <li class="page-item" th:classappend="${recipePage.isLast()} ? 'disabled'">
+                    <a aria-label="Next" class="page-link"
+                       th:href="@{/(page=${recipePage.number + 1}, size=${recipePage.size})}">&raquo;</a>
+                </li>
+            </ul>
+        </nav>
     </div>
 </div>
-<div th:replace="~{fragments/scripts :: footer_scripts}"></div>
 </body>
 </html>
