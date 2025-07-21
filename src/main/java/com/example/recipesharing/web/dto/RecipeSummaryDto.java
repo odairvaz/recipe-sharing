@@ -13,6 +13,7 @@ public record RecipeSummaryDto(
         String authorFirstName,
         String authorLastName,
         String authorEmail,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        boolean isFavorited
 ) {
 }

@@ -1,6 +1,7 @@
 package com.example.recipesharing.service;
 
 import com.example.recipesharing.persistense.model.User;
+import com.example.recipesharing.service.token.ActivationResult;
 import com.example.recipesharing.web.dto.UserDto;
 import com.example.recipesharing.web.error.UserAlreadyExistException;
 import org.springframework.web.multipart.MultipartFile;

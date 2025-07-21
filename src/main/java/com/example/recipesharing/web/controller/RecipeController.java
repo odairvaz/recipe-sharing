@@ -5,6 +5,7 @@ import com.example.recipesharing.persistense.model.Recipe;
 import com.example.recipesharing.persistense.model.User;
 import com.example.recipesharing.persistense.model.enums.RecipeCategory;
 import com.example.recipesharing.security.core.userdetails.RecipeUserDetails;
+import com.example.recipesharing.service.IFavoriteService;
 import com.example.recipesharing.service.IRecipeService;
 import com.example.recipesharing.service.IReviewService;
 import com.example.recipesharing.service.IUserService;
@@ -12,6 +13,7 @@ import com.example.recipesharing.web.dto.RecipeCreateRequestDto;
 import com.example.recipesharing.web.dto.RecipeDetailDto;
 import com.example.recipesharing.web.dto.RecipeSummaryDto;
 import com.example.recipesharing.web.dto.ReviewSubmissionDto;
+import com.example.recipesharing.web.error.ResourceNotFoundException;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -40,11 +43,13 @@ public class RecipeController {
     private final IRecipeService recipeService;
     private final IUserService userService;
     private final IReviewService reviewService;
+    private final IFavoriteService favoriteService;
 
-    public RecipeController(IRecipeService recipeService, IUserService userService, IReviewService reviewService) {
+    public RecipeController(IRecipeService recipeService, IUserService userService, IReviewService reviewService, IFavoriteService favoriteService) {
         this.recipeService = recipeService;
         this.userService = userService;
         this.reviewService = reviewService;
+        this.favoriteService = favoriteService;
     }
 
     @GetMapping({"/", "/home"})
@@ -52,9 +57,12 @@ public class RecipeController {
                        @PageableDefault(size = 2,
                        sort = "createdAt",
                        direction = Sort.Direction.DESC)
-                       Pageable pageable) {
+                       Pageable pageable, @AuthenticationPrincipal RecipeUserDetails currentUserDetails) {
 
-        Page<RecipeSummaryDto> recipeDtoPage = recipeService.findAllSummaries(pageable);
+        User user = userService.findUserByEmail(currentUserDetails.getEmail())
+                .orElseThrow(() -> new RuntimeException("Authenticated user not found in database"));
+
+        Page<RecipeSummaryDto> recipeDtoPage = recipeService.findAllSummaries(pageable, user);
         model.addAttribute("recipePage", recipeDtoPage);
         return VIEW_HOME;
     }
@@ -170,6 +178,59 @@ public class RecipeController {
         }
 
         return "redirect:/recipe/" + recipeId;
+    }
+
+    @PostMapping("/recipe/{recipeId}/favorite/toggle")
+    public String toggleFavorite(@PathVariable Long recipeId,
+                                 @AuthenticationPrincipal RecipeUserDetails currentUserDetails,
+                                 RedirectAttributes redirectAttributes,
+                                 @RequestHeader(value = HttpHeaders.REFERER, required = false) final String referer) {
+
+        if (currentUserDetails == null) {
+            redirectAttributes.addFlashAttribute("error", "Please log in to manage favorites.");
+            return "redirect:/login";
+        }
+        User user = userService.findUserByEmail(currentUserDetails.getEmail())
+                .orElseThrow(() -> new RuntimeException("Authenticated user not found in database"));
+
+        try {
+            boolean isCurrentlyFavorited = favoriteService.isRecipeFavoritedByUser(recipeId, user);
+
+            if (isCurrentlyFavorited) {
+                favoriteService.removeFavorite(recipeId, user);
+                redirectAttributes.addFlashAttribute("favoriteSuccess", "Recipe removed from favorites.");
+            } else {
+                favoriteService.addFavorite(recipeId, user);
+                redirectAttributes.addFlashAttribute("favoriteSuccess", "Recipe added to favorites!");
+            }
+        } catch (ResourceNotFoundException e) {
+            LOGGER.warn("Toggle favorite failed: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("favoriteError", "Could not change favorite status: Resource not found.");
+        } catch (Exception e) {
+            LOGGER.error("Error toggling favorite for recipe ID {} by user {}", recipeId, user, e);
+            redirectAttributes.addFlashAttribute("favoriteError", "An error occurred while updating favorites.");
+        }
+
+        String redirectUrl = (referer != null && !referer.contains("/login")) ? referer : "/recipe/" + recipeId;
+        return "redirect:" + redirectUrl;
+    }
+
+    @GetMapping("/my-favorites")
+    public String myFavorites(Model model,
+                              @AuthenticationPrincipal RecipeUserDetails currentUserDetails,
+                              @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+                              RedirectAttributes redirectAttributes) {
+
+        if (currentUserDetails == null) {
+            redirectAttributes.addFlashAttribute("error", "Please log in to view your favorites.");
+            return "redirect:/login";
+        }
+        User user = userService.findUserByEmail(currentUserDetails.getEmail())
+                .orElseThrow(() -> new RuntimeException("Authenticated user not found in database"));
+
+        Page<RecipeSummaryDto> favoriteRecipePage = favoriteService.findFavoritedRecipesByUser(user, pageable);
+        model.addAttribute("favoriteRecipePage", favoriteRecipePage);
+        return "favorite/user_favorite";
     }
 
 }
