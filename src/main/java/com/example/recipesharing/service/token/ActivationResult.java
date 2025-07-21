@@ -1,4 +1,4 @@
-package com.example.recipesharing.service;
+package com.example.recipesharing.service.token;
 
 public enum ActivationResult {
     SUCCESS,

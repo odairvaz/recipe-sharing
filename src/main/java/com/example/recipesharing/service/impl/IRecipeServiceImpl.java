@@ -4,6 +4,7 @@ import com.example.recipesharing.persistense.model.Recipe;
 import com.example.recipesharing.persistense.model.Review;
 import com.example.recipesharing.persistense.model.User;
 import com.example.recipesharing.persistense.repository.IRecipeRepository;
+import com.example.recipesharing.service.IFavoriteService;
 import com.example.recipesharing.service.IFileStorageService;
 import com.example.recipesharing.service.IRecipeService;
 import com.example.recipesharing.service.filestorage.StorageType;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,11 +36,13 @@ public class IRecipeServiceImpl implements IRecipeService {
 
     private final IRecipeRepository recipeRepository;
     private final IFileStorageService fileStorageService;
+    private final IFavoriteService favoriteService;
 
 
-    public IRecipeServiceImpl(IRecipeRepository recipeRepository, IFileStorageService fileStorageService) {
+    public IRecipeServiceImpl(IRecipeRepository recipeRepository, IFileStorageService fileStorageService, IFavoriteService favoriteService) {
         this.recipeRepository = recipeRepository;
         this.fileStorageService = fileStorageService;
+        this.favoriteService = favoriteService;
     }
 
     @Override
@@ -76,19 +80,22 @@ public class IRecipeServiceImpl implements IRecipeService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<RecipeSummaryDto> findAllSummaries(Pageable pageable) {
+    public Page<RecipeSummaryDto> findAllSummaries(Pageable pageable, User user) {
         Page<Recipe> recipePage = recipeRepository.findAll(pageable);
+        List<Long> recipeIdsOnPage = recipePage.getContent().stream().map(Recipe::getId).collect(Collectors.toList());
+        Set<Long> favoritedIds = favoriteService.findUserFavoriteRecipeIdsInList(user, recipeIdsOnPage);
 
         List<RecipeSummaryDto> dtoList = recipePage.getContent()
                 .stream()
-                .map(this::mapToSummaryDto)
+                .map(recipe -> mapToSummaryDto(recipe, favoritedIds))
                 .collect(Collectors.toList());
 
         return new PageImpl<>(dtoList, pageable, recipePage.getTotalElements());
     }
 
-    private RecipeSummaryDto mapToSummaryDto(Recipe recipe) {
+    private RecipeSummaryDto mapToSummaryDto(Recipe recipe, Set<Long> favoritedRecipeIds) {
         User author = recipe.getAuthor();
+        boolean isFavorited = favoritedRecipeIds.contains(recipe.getId());
 
         return new RecipeSummaryDto(
                 recipe.getId(),
@@ -99,7 +106,8 @@ public class IRecipeServiceImpl implements IRecipeService {
                 author.getFirstName(),
                 author.getLastName(),
                 author.getEmail(),
-                recipe.getCreatedAt()
+                recipe.getCreatedAt(),
+                isFavorited
         );
     }
 

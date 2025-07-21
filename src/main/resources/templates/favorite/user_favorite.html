@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main_layout}">
+<head>
+    <title>My Favorite Recipes</title>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <h1 class="mb-4 text-center">My Favorite Recipes</h1>
+
+    <div th:if="${favoriteSuccess}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${favoriteSuccess}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${favoriteError}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${favoriteError}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+
+    <div th:if="${favoriteRecipePage == null or favoriteRecipePage.empty}" class="alert alert-info text-center" role="alert">
+        You haven't favorited any recipes yet. <a th:href="@{/}">Explore recipes</a>!
+    </div>
+
+    <div th:if="${favoriteRecipePage != null and favoriteRecipePage.hasContent()}">
+        <div class="list-container">
+            <div class="d-flex border rounded shadow-sm mb-4 p-3 bg-white" th:each="recipe : ${favoriteRecipePage.content}">
+                <div class="flex-shrink-0 me-3" style="width: 150px;">
+                    <a th:href="@{/recipe/{id}(id=${recipe.id})}">
+                        <img th:src="${recipe.imageUrl != null and !recipe.imageUrl.isEmpty() ? recipe.imageUrl : '/images/placeholder.png'}"
+                             class="img-fluid rounded" th:alt="${recipe.title}" style="object-fit: cover; height: 120px; width: 100%;"/>
+                    </a>
+                </div>
+                <div class="flex-grow-1 d-flex flex-column">
+                    <div>
+                        <h5 class="mb-1"><a th:href="@{/recipe/{id}(id=${recipe.id})}" th:text="${recipe.title}" class="text-decoration-none text-dark">Recipe Title</a></h5>
+                        <p class="mb-2 text-muted" style="font-size: 0.9rem;" th:text="${#strings.abbreviate(recipe.description, 150)}">Desc</p>
+                    </div>
+                    <div class="mt-auto d-flex justify-content-between align-items-center pt-2 border-top">
+                        <small class="text-muted">By: <span th:text="${recipe.authorFirstName}">Author</span>
+                            <span th:if="${recipe.category != null}" class="ms-2 badge bg-secondary" th:text="${recipe.category.displayName}">Category</span>
+                        </small>
+                        <form th:action="@{/recipe/{recipeId}/favorite/toggle(recipeId=${recipe.id})}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-danger" title="Remove from Favorites">
+                                <i class="fas fa-heart"></i> Unfavorite
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <nav aria-label="Favorite Recipes navigation" th:if="${favoriteRecipePage.totalPages > 1}" class="mt-4 d-flex justify-content-center">
+            <ul class="pagination">
+                <li class="page-item" th:classappend="${favoriteRecipePage.isFirst()} ? 'disabled'">
+                    <a class="page-link" th:href="@{/my-favorites(page=${favoriteRecipePage.number - 1}, size=${favoriteRecipePage.size})}" aria-label="Previous">&laquo;</a>
+                </li>
+                <li class="page-item" th:each="pageNumber : ${#numbers.sequence( T(java.lang.Math).max(0, favoriteRecipePage.number - 2), T(java.lang.Math).min(favoriteRecipePage.totalPages - 1, favoriteRecipePage.number + 2) )}" th:classappend="${pageNumber == favoriteRecipePage.number} ? 'active'">
+                    <a class="page-link" th:href="@{/my-favorites(page=${pageNumber}, size=${favoriteRecipePage.size})}" th:text="${pageNumber + 1}">1</a>
+                </li>
+                <li class="page-item" th:classappend="${favoriteRecipePage.isLast()} ? 'disabled'">
+                    <a class="page-link" th:href="@{/my-favorites(page=${favoriteRecipePage.number + 1}, size=${favoriteRecipePage.size})}" aria-label="Next">&raquo;</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+</body>
+</html>

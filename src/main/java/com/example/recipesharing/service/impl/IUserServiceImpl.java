@@ -4,7 +4,7 @@ import com.example.recipesharing.persistense.model.User;
 import com.example.recipesharing.persistense.model.VerificationToken;
 import com.example.recipesharing.persistense.repository.IUserRepository;
 import com.example.recipesharing.persistense.repository.IVerificationTokenRepository;
-import com.example.recipesharing.service.ActivationResult;
+import com.example.recipesharing.service.token.ActivationResult;
 import com.example.recipesharing.service.IFileStorageService;
 import com.example.recipesharing.service.IUserService;
 import com.example.recipesharing.service.filestorage.StorageType;
@@ -21,8 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Optional;
-
-import static com.example.recipesharing.constants.ViewName.VIEW_REGISTRATION_FORM;
 
 @Service
 @Transactional

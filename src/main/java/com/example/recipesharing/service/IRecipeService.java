@@ -17,6 +17,6 @@ public interface IRecipeService {
 
     Recipe addNewRecipe(RecipeCreateRequestDto recipeDto, MultipartFile recipeImage, User author);
 
-    Page<RecipeSummaryDto> findAllSummaries(Pageable pageable);
+    Page<RecipeSummaryDto> findAllSummaries(Pageable pageable, User user);
 
 }

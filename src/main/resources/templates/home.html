@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html lang="en" layout:decorate="~{layout/main-layout}"
+<html lang="en" layout:decorate="~{layout/main_layout}"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security6"
       xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Recipe Home - Discover Recipes</title>
@@ -11,6 +12,15 @@
 <div layout:fragment="content">
 
     <h1 class="mb-4 text-center">Discover Recipes</h1>
+
+    <div class="alert alert-success alert-dismissible fade show" role="alert" th:if="${favoriteSuccess}">
+        <span th:text="${favoriteSuccess}"></span>
+        <button aria-label="Close" class="btn-close" data-bs-dismiss="alert" type="button"></button>
+    </div>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${favoriteError}">
+        <span th:text="${favoriteError}"></span>
+        <button aria-label="Close" class="btn-close" data-bs-dismiss="alert" type="button"></button>
+    </div>
 
     <div class="alert alert-success alert-dismissible fade show" role="alert" th:if="${success}">
         <span th:text="${success}"></span>
@@ -37,7 +47,8 @@
                 </div>
                 <div class="flex-grow-1 d-flex flex-column">
                     <div>
-                        <h5 class="mb-1"><a class="text-decoration-none text-dark" th:href="@{/recipe/{id}(id=${recipe.id})}"
+                        <h5 class="mb-1"><a class="text-decoration-none text-dark"
+                                            th:href="@{/recipe/{id}(id=${recipe.id})}"
                                             th:text="${recipe.title}">Recipe Title</a></h5>
                         <p class="mb-2 text-muted" style="font-size: 0.9rem;"
                            th:text="${#strings.abbreviate(recipe.description, 150)}">Description</p>
@@ -47,9 +58,21 @@
                             By: <span th:text="${recipe.authorFirstName}">Author</span>
                             <span class="ms-2 badge bg-secondary"
                                   th:if="${recipe.category != null}"
-                                  th:text="${recipe.category.displayName}">Category</span> </small>
-                        <a class="btn btn-sm btn-outline-primary" th:href="@{/recipe/{id}(id=${recipe.id})}">View
-                            Recipe</a>
+                                  th:text="${recipe.category.displayName}">Category</span>
+                        </small>
+                        <div>
+                            <a class="btn btn-sm btn-outline-primary me-1" th:href="@{/recipe/{id}(id=${recipe.id})}">View</a>
+                            <div class="d-inline" sec:authorize="isAuthenticated()">
+                                <form class="d-inline"
+                                      method="post" th:action="@{/recipe/{recipeId}/favorite/toggle(recipeId=${recipe.id})}">
+                                    <button class="btn btn-sm" th:classappend="${recipe.isFavorited} ? 'btn-danger' : 'btn-outline-danger'"
+                                            th:title="${recipe.isFavorited} ? 'Unfavorite Recipe' : 'Favorite Recipe'"
+                                            type="submit">
+                                        <i th:class="${recipe.isFavorited} ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
