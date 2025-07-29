@@ -93,6 +93,30 @@ public class IRecipeServiceImpl implements IRecipeService {
         return new PageImpl<>(dtoList, pageable, recipePage.getTotalElements());
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<RecipeSummaryDto> searchRecipes(String keyword, Pageable pageable, User user) {
+        if (keyword == null || keyword.isBlank()) {
+            return Page.empty(pageable);
+        }
+
+        Page<Recipe> recipePage = recipeRepository.searchByKeyword(keyword, pageable);
+
+        Set<Long> favoritedIds = Collections.emptySet();
+        if (user != null) {
+            List<Long> recipeIdsOnPage = recipePage.getContent().stream().map(Recipe::getId).collect(Collectors.toList());
+            favoritedIds = favoriteService.findUserFavoriteRecipeIdsInList(user, recipeIdsOnPage);
+        }
+
+        Set<Long> finalFavoritedIds = favoritedIds;
+        List<RecipeSummaryDto> dtoList = recipePage.getContent()
+                .stream()
+                .map(recipe -> mapToSummaryDto(recipe, finalFavoritedIds))
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(dtoList, pageable, recipePage.getTotalElements());
+    }
+
     private RecipeSummaryDto mapToSummaryDto(Recipe recipe, Set<Long> favoritedRecipeIds) {
         User author = recipe.getAuthor();
         boolean isFavorited = favoritedRecipeIds.contains(recipe.getId());

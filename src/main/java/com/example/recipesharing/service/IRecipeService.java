@@ -19,4 +19,6 @@ public interface IRecipeService {
 
     Page<RecipeSummaryDto> findAllSummaries(Pageable pageable, User user);
 
+    Page<RecipeSummaryDto> searchRecipes(String keyword, Pageable pageable, User user);
+
 }

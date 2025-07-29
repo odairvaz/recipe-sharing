@@ -22,9 +22,9 @@
                     <a class="nav-link" th:href="@{/my-favorites}">My Favorites</a>
                 </li>
             </ul>
-            <form class="d-flex" role="search">
-                <input class="form-control me-2" type="search" placeholder="Search Recipes" aria-label="Search">
-                <button class="btn btn-outline-success" type="submit">Search</button>
+            <form class="d-flex" role="search" method="get" th:action="@{/search}">
+                <input class="form-control me-2" type="search" placeholder="Search Recipes" aria-label="Search"
+                       name="keyword" th:value="${keyword}"> <button class="btn btn-outline-success" type="submit">Search</button>
             </form>
         </div>
     </div>

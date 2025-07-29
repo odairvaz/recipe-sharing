@@ -233,4 +233,31 @@ public class RecipeController {
         return "favorite/user_favorite";
     }
 
+    @GetMapping("/search")
+    public String searchRecipes(@RequestParam(value = "keyword", required = false) String keyword,
+                                Model model,
+                                @AuthenticationPrincipal RecipeUserDetails currentUserDetails,
+                                @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        Page<RecipeSummaryDto> recipePage;
+        User user = null;
+
+        if (currentUserDetails != null) {
+            user = userService.findUserByEmail(currentUserDetails.getEmail())
+                    .orElseThrow(() -> new RuntimeException("Authenticated user not found in database"));
+        }
+
+        if (keyword != null && !keyword.isBlank()) {
+            LOGGER.debug("Performing search for keyword: {}", keyword);
+            recipePage = recipeService.searchRecipes(keyword, pageable, user);
+            model.addAttribute("keyword", keyword);
+        } else {
+            LOGGER.debug("Search keyword is empty, displaying empty results.");
+            recipePage = Page.empty(pageable);
+        }
+
+        model.addAttribute("recipePage", recipePage);
+        return "recipe/search_results";
+    }
+
 }
