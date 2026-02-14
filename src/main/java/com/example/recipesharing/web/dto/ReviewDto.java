@@ -1,5 +1,6 @@
 package com.example.recipesharing.web.dto;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 public record ReviewDto(
@@ -10,4 +11,4 @@ public record ReviewDto(
         String reviewerLastName,
         String reviewerEmail,
         LocalDateTime reviewDate
-) {}
+) implements Serializable {}

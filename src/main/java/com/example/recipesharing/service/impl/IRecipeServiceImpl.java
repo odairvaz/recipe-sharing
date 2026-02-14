@@ -15,6 +15,8 @@ import com.example.recipesharing.web.dto.ReviewDto;
 import com.example.recipesharing.web.error.InvalidFileException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -46,12 +48,15 @@ public class IRecipeServiceImpl implements IRecipeService {
     }
 
     @Override
+    @Cacheable(value = "recipeDetail", key = "#recipeId")
+    @Transactional(readOnly = true)
     public Optional<RecipeDetailDto> findRecipeDetailById(Long recipeId) {
         Optional<Recipe> recipeOpt = recipeRepository.findById(recipeId);
         return recipeOpt.map(this::mapToDetailDto);
     }
 
     @Override
+    @CacheEvict(value = "searchResults", allEntries = true)
     @Transactional
     public Recipe addNewRecipe(RecipeCreateRequestDto recipeDto, MultipartFile recipeImage, User author) {
         String imageUrl = null;
@@ -79,6 +84,9 @@ public class IRecipeServiceImpl implements IRecipeService {
     }
 
     @Override
+    @Cacheable(value = "searchResults",
+            key = "#keyword + '-' + #pageable.pageNumber + '-' + #pageable.pageSize",
+            condition = "#user == null")
     @Transactional(readOnly = true)
     public Page<RecipeSummaryDto> findAllSummaries(Pageable pageable, User user) {
         Page<Recipe> recipePage = recipeRepository.findAll(pageable);

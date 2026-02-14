@@ -2,6 +2,7 @@ package com.example.recipesharing.web.dto;
 
 import com.example.recipesharing.persistense.model.enums.RecipeCategory;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 public record RecipeSummaryDto(
@@ -15,5 +16,4 @@ public record RecipeSummaryDto(
         String authorEmail,
         LocalDateTime createdAt,
         boolean isFavorited
-) {
-}
+) implements Serializable {}
