@@ -11,6 +11,7 @@ import com.example.recipesharing.web.error.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.CacheManager;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,11 +23,13 @@ public class IReviewServiceImpl implements IReviewService {
 
     private final IReviewRepository reviewRepository;
     private final IRecipeRepository recipeRepository;
+    private final CacheManager cacheManager;
 
 
-    public IReviewServiceImpl(IReviewRepository reviewRepository, IRecipeRepository recipeRepository) {
+    public IReviewServiceImpl(IReviewRepository reviewRepository, IRecipeRepository recipeRepository, CacheManager cacheManager) {
         this.reviewRepository = reviewRepository;
         this.recipeRepository = recipeRepository;
+        this.cacheManager = cacheManager;
     }
 
     @Override
@@ -48,6 +51,7 @@ public class IReviewServiceImpl implements IReviewService {
         newReview.setUser(author);
 
         Review savedReview = reviewRepository.save(newReview);
+        evictRecipeDetailCache(recipeId);
         LOGGER.info("Successfully added review with ID {} for recipe ID {} by user '{}'",
                 savedReview.getId(),
                 recipeId,
@@ -65,7 +69,16 @@ public class IReviewServiceImpl implements IReviewService {
                     return new ResourceNotFoundException("Review", "id", reviewId);
                 });
 
+        Long recipeId = review.getRecipe().getId();
         reviewRepository.delete(review);
+        evictRecipeDetailCache(recipeId);
+        LOGGER.info("Deleted review ID {} — evicted recipeDetail::{} from cache", reviewId, recipeId);
+    }
 
+    private void evictRecipeDetailCache(Long recipeId) {
+        var cache = cacheManager.getCache("recipeDetail");
+        if (cache != null) {
+            cache.evict(recipeId);
+        }
     }
 }
