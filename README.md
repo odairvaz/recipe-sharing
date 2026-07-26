@@ -23,3 +23,25 @@ A full-stack web application built with Java and Spring Boot that allows users t
   * **Build Tool:** Maven
   * **Utilities:** Lombok
 
+-----
+
+## Getting Started
+
+### Prerequisites
+- [Docker](https://www.docker.com/) and Docker Compose
+- Java 17+ and Maven (only if running the app outside Docker)
+
+### Running with Docker
+```bash
+# 1. Clone the repository
+git clone https://github.com/odairvaz/recipe-sharing.git
+cd recipe-sharing
+
+# 2. Start the application and database
+docker compose up
+
+# 3. Open the app
+# http://localhost:8080
+```
+
+The database schema is created automatically on first startup.
