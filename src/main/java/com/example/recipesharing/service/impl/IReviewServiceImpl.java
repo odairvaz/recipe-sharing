@@ -7,8 +7,8 @@ import com.example.recipesharing.persistense.repository.IRecipeRepository;
 import com.example.recipesharing.persistense.repository.IReviewRepository;
 import com.example.recipesharing.service.IReviewService;
 import com.example.recipesharing.web.dto.ReviewSubmissionDto;
+import com.example.recipesharing.web.error.DuplicateReviewException;
 import com.example.recipesharing.web.error.ResourceNotFoundException;
-import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
@@ -36,13 +36,14 @@ public class IReviewServiceImpl implements IReviewService {
     @Transactional
     public void addReview(Long recipeId, ReviewSubmissionDto reviewDto, User author) {
 
-        LOGGER.warn("Attempting to add review by user '{}' for recipe ID {}", author.getEmail(), recipeId);
+        LOGGER.debug("Attempting to add review by user '{}' for recipe ID {}", author.getEmail(), recipeId);
 
         Recipe recipe = recipeRepository.findById(recipeId)
-                .orElseThrow(() -> {
-                    LOGGER.debug("Recipe not found with ID: {}", recipeId);
-                     return new EntityNotFoundException("Recipe not found with id " + recipeId);
-                });
+                .orElseThrow(() -> new ResourceNotFoundException("Recipe", "id", recipeId));
+
+        if (reviewRepository.existsByUserIdAndRecipeId(author.getId(), recipeId)) {
+            throw new DuplicateReviewException("You have already reviewed this recipe.");
+        }
 
         Review newReview = new Review();
         newReview.setRating(reviewDto.rating());
@@ -60,14 +61,16 @@ public class IReviewServiceImpl implements IReviewService {
     }
 
     @Override
+    @Transactional
     public void deleteReview(Long reviewId, String currentUsername) throws AccessDeniedException {
-        LOGGER.warn("Attempting to delete review ID {} by user '{}'", reviewId, currentUsername);
+        LOGGER.debug("Attempting to delete review ID {} by user '{}'", reviewId, currentUsername);
 
         Review review = reviewRepository.findByIdFetchingUser(reviewId)
-                .orElseThrow(() -> {
-                    LOGGER.warn("Review not found with ID: {}", reviewId);
-                    return new ResourceNotFoundException("Review", "id", reviewId);
-                });
+                .orElseThrow(() -> new ResourceNotFoundException("Review", "id", reviewId));
+
+        if (!review.getUser().getEmail().equals(currentUsername)) {
+            throw new AccessDeniedException("User '" + currentUsername + "' does not own review " + reviewId);
+        }
 
         Long recipeId = review.getRecipe().getId();
         reviewRepository.delete(review);

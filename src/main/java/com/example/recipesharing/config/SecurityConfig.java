@@ -7,13 +7,17 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.ExceptionMappingAuthenticationFailureHandler;
+
+import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
-
-public class SecurityConfig  {
+public class SecurityConfig {
 
     private final UserDetailsServiceImpl userDetailsService;
 
@@ -30,8 +34,9 @@ public class SecurityConfig  {
                                 "/register",
                                 "/register/*",
                                 "/css/**",
-                                "/static/css/**",
-                                "/js/**"
+                                "/js/**",
+                                "/images/**",
+                                "/error"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -41,6 +46,7 @@ public class SecurityConfig  {
                         .usernameParameter("email")
                         .passwordParameter("password")
                         .defaultSuccessUrl("/home", true)
+                        .failureHandler(authenticationFailureHandler())
                         .permitAll()
                 )
                 .logout(logout -> logout
@@ -49,6 +55,13 @@ public class SecurityConfig  {
                 );
 
         return http.build();
+    }
+
+    private AuthenticationFailureHandler authenticationFailureHandler() {
+        ExceptionMappingAuthenticationFailureHandler handler = new ExceptionMappingAuthenticationFailureHandler();
+        handler.setDefaultFailureUrl("/login?error");
+        handler.setExceptionMappings(Map.of(DisabledException.class.getName(), "/login?disabled"));
+        return handler;
     }
 
     @Bean

@@ -47,9 +47,9 @@ public class IUserServiceImpl implements IUserService {
             throw new UserAlreadyExistException("There is an account with that email address: " + registrationRequest.getEmail());
         }
         String avatarUrl = null;
-        if (!avatarFile.isEmpty()) {
+        if (avatarFile != null && !avatarFile.isEmpty()) {
             try {
-                avatarUrl = fileStorageService.storeFile(avatarFile, StorageType.RECIPE_IMAGE);
+                avatarUrl = fileStorageService.storeFile(avatarFile, StorageType.AVATAR);
             } catch (InvalidFileException | IOException ex) {
                 LOGGER.warn("Avatar upload failed for user {}: {}", registrationRequest.getEmail(), ex.getMessage());
             }

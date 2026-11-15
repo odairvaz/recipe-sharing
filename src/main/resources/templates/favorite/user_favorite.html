@@ -10,14 +10,6 @@
 
     <h1 class="mb-4 text-center">My Favorite Recipes</h1>
 
-    <div th:if="${favoriteSuccess}" class="alert alert-success alert-dismissible fade show" role="alert">
-        <span th:text="${favoriteSuccess}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    <div th:if="${favoriteError}" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <span th:text="${favoriteError}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
 
 
     <div th:if="${favoriteRecipePage == null or favoriteRecipePage.empty}" class="alert alert-info text-center" role="alert">
@@ -29,7 +21,7 @@
             <div class="d-flex border rounded shadow-sm mb-4 p-3 bg-white" th:each="recipe : ${favoriteRecipePage.content}">
                 <div class="flex-shrink-0 me-3" style="width: 150px;">
                     <a th:href="@{/recipe/{id}(id=${recipe.id})}">
-                        <img th:src="${recipe.imageUrl != null and !recipe.imageUrl.isEmpty() ? recipe.imageUrl : '/images/placeholder.png'}"
+                        <img th:src="${recipe.imageUrl != null and !recipe.imageUrl.isEmpty() ? recipe.imageUrl : '/images/placeholder.svg'}"
                              class="img-fluid rounded" th:alt="${recipe.title}" style="object-fit: cover; height: 120px; width: 100%;"/>
                     </a>
                 </div>

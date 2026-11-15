@@ -16,4 +16,10 @@ public record RecipeSummaryDto(
         String authorEmail,
         LocalDateTime createdAt,
         boolean isFavorited
-) implements Serializable {}
+) implements Serializable {
+
+    public RecipeSummaryDto withFavorited(boolean favorited) {
+        return new RecipeSummaryDto(id, title, description, imageUrl, category, authorFirstName, authorLastName,
+                authorEmail, createdAt, favorited);
+    }
+}

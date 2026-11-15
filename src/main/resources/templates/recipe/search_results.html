@@ -27,7 +27,7 @@
                     <a th:href="@{/recipe/{id}(id=${recipe.id})}">
                         <img class="img-fluid rounded" style="object-fit: cover; height: 120px; width: 100%;"
                              th:alt="${recipe.title}"
-                             th:src="${recipe.imageUrl != null and !recipe.imageUrl.isEmpty() ? recipe.imageUrl : '/images/placeholder.png'}"/>
+                             th:src="${recipe.imageUrl != null and !recipe.imageUrl.isEmpty() ? recipe.imageUrl : '/images/placeholder.svg'}"/>
                     </a>
                 </div>
                 <div class="flex-grow-1 d-flex flex-column">

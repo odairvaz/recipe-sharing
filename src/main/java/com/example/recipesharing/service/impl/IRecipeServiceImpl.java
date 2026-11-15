@@ -1,35 +1,31 @@
 package com.example.recipesharing.service.impl;
 
 import com.example.recipesharing.persistense.model.Recipe;
-import com.example.recipesharing.persistense.model.Review;
 import com.example.recipesharing.persistense.model.User;
 import com.example.recipesharing.persistense.repository.IRecipeRepository;
 import com.example.recipesharing.service.IFavoriteService;
 import com.example.recipesharing.service.IFileStorageService;
 import com.example.recipesharing.service.IRecipeService;
 import com.example.recipesharing.service.filestorage.StorageType;
+import com.example.recipesharing.service.mapper.RecipeMapper;
 import com.example.recipesharing.web.dto.RecipeCreateRequestDto;
 import com.example.recipesharing.web.dto.RecipeDetailDto;
 import com.example.recipesharing.web.dto.RecipeSummaryDto;
-import com.example.recipesharing.web.dto.ReviewDto;
-import com.example.recipesharing.web.error.InvalidFileException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
+import java.io.UncheckedIOException;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class IRecipeServiceImpl implements IRecipeService {
@@ -39,24 +35,31 @@ public class IRecipeServiceImpl implements IRecipeService {
     private final IRecipeRepository recipeRepository;
     private final IFileStorageService fileStorageService;
     private final IFavoriteService favoriteService;
+    private final RecipeSummaryCache recipeSummaryCache;
+    private final RecipeMapper recipeMapper;
 
-
-    public IRecipeServiceImpl(IRecipeRepository recipeRepository, IFileStorageService fileStorageService, IFavoriteService favoriteService) {
+    public IRecipeServiceImpl(IRecipeRepository recipeRepository, IFileStorageService fileStorageService,
+                              IFavoriteService favoriteService, RecipeSummaryCache recipeSummaryCache,
+                              RecipeMapper recipeMapper) {
         this.recipeRepository = recipeRepository;
         this.fileStorageService = fileStorageService;
         this.favoriteService = favoriteService;
+        this.recipeSummaryCache = recipeSummaryCache;
+        this.recipeMapper = recipeMapper;
     }
 
     @Override
     @Cacheable(value = "recipeDetail", key = "#recipeId")
     @Transactional(readOnly = true)
     public Optional<RecipeDetailDto> findRecipeDetailById(Long recipeId) {
-        Optional<Recipe> recipeOpt = recipeRepository.findById(recipeId);
-        return recipeOpt.map(this::mapToDetailDto);
+        return recipeRepository.findDetailById(recipeId).map(recipeMapper::toDetailDto);
     }
 
     @Override
-    @CacheEvict(value = "searchResults", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = RecipeSummaryCache.RECIPE_SUMMARIES, allEntries = true),
+            @CacheEvict(value = RecipeSummaryCache.SEARCH_RESULTS, allEntries = true)
+    })
     @Transactional
     public Recipe addNewRecipe(RecipeCreateRequestDto recipeDto, MultipartFile recipeImage, User author) {
         String imageUrl = null;
@@ -64,9 +67,9 @@ public class IRecipeServiceImpl implements IRecipeService {
             try {
                 imageUrl = fileStorageService.storeFile(recipeImage, StorageType.RECIPE_IMAGE);
                 LOGGER.info("Stored image file {} for recipe {}", imageUrl, recipeDto.title());
-            } catch (IOException | InvalidFileException e) {
+            } catch (IOException e) {
                 LOGGER.error("Could not store image for recipe '{}': {}", recipeDto.title(), e.getMessage());
-                throw new RuntimeException("Failed to save recipe image.", e);
+                throw new UncheckedIOException("Failed to save recipe image.", e);
             }
         }
 
@@ -84,100 +87,25 @@ public class IRecipeServiceImpl implements IRecipeService {
     }
 
     @Override
-    @Cacheable(value = "searchResults",
-            key = "#keyword + '-' + #pageable.pageNumber + '-' + #pageable.pageSize",
-            condition = "#user == null")
-    @Transactional(readOnly = true)
     public Page<RecipeSummaryDto> findAllSummaries(Pageable pageable, User user) {
-        Page<Recipe> recipePage = recipeRepository.findAll(pageable);
-        List<Long> recipeIdsOnPage = recipePage.getContent().stream().map(Recipe::getId).collect(Collectors.toList());
-        Set<Long> favoritedIds = favoriteService.findUserFavoriteRecipeIdsInList(user, recipeIdsOnPage);
-
-        List<RecipeSummaryDto> dtoList = recipePage.getContent()
-                .stream()
-                .map(recipe -> mapToSummaryDto(recipe, favoritedIds))
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(dtoList, pageable, recipePage.getTotalElements());
+        return applyFavorites(recipeSummaryCache.findAll(pageable), user);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Page<RecipeSummaryDto> searchRecipes(String keyword, Pageable pageable, User user) {
         if (keyword == null || keyword.isBlank()) {
             return Page.empty(pageable);
         }
+        return applyFavorites(recipeSummaryCache.search(keyword, pageable), user);
+    }
 
-        Page<Recipe> recipePage = recipeRepository.searchByKeyword(keyword, pageable);
-
-        Set<Long> favoritedIds = Collections.emptySet();
-        if (user != null) {
-            List<Long> recipeIdsOnPage = recipePage.getContent().stream().map(Recipe::getId).collect(Collectors.toList());
-            favoritedIds = favoriteService.findUserFavoriteRecipeIdsInList(user, recipeIdsOnPage);
+    private Page<RecipeSummaryDto> applyFavorites(Page<RecipeSummaryDto> page, User user) {
+        if (user == null || page.isEmpty()) {
+            return page;
         }
-
-        Set<Long> finalFavoritedIds = favoritedIds;
-        List<RecipeSummaryDto> dtoList = recipePage.getContent()
-                .stream()
-                .map(recipe -> mapToSummaryDto(recipe, finalFavoritedIds))
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(dtoList, pageable, recipePage.getTotalElements());
-    }
-
-    private RecipeSummaryDto mapToSummaryDto(Recipe recipe, Set<Long> favoritedRecipeIds) {
-        User author = recipe.getAuthor();
-        boolean isFavorited = favoritedRecipeIds.contains(recipe.getId());
-
-        return new RecipeSummaryDto(
-                recipe.getId(),
-                recipe.getTitle(),
-                recipe.getDescription(),
-                recipe.getImageUrl(),
-                recipe.getCategory(),
-                author.getFirstName(),
-                author.getLastName(),
-                author.getEmail(),
-                recipe.getCreatedAt(),
-                isFavorited
-        );
-    }
-
-    private RecipeDetailDto mapToDetailDto(Recipe recipe) {
-        List<ReviewDto> reviewDtos = (recipe.getReviews() == null) ? Collections.emptyList() :
-                recipe.getReviews().stream()
-                        .map(this::mapToReviewDto)
-                        .collect(Collectors.toList());
-
-        User recipeAuthor = recipe.getAuthor();
-        return new RecipeDetailDto(
-                recipe.getId(),
-                recipe.getTitle(),
-                recipe.getDescription(),
-                recipe.getIngredients(),
-                recipe.getInstructions(),
-                recipe.getCategory(),
-                recipe.getImageUrl(),
-                recipe.getCreatedAt(),
-                recipeAuthor.getFirstName(),
-                recipeAuthor.getLastName(),
-                recipeAuthor.getEmail(),
-                recipeAuthor.getAvatarUrl(),
-                reviewDtos
-        );
-    }
-
-    private ReviewDto mapToReviewDto(Review review) {
-        User reviewAuthor = review.getUser();
-        return new ReviewDto(
-                review.getId(),
-                review.getRating(),
-                review.getComment(),
-                reviewAuthor.getFirstName(),
-                reviewAuthor.getLastName(),
-                reviewAuthor.getEmail(),
-                review.getCreatedAt()
-        );
+        Set<Long> favoritedIds = favoriteService.findUserFavoriteRecipeIdsInList(
+                user, page.getContent().stream().map(RecipeSummaryDto::id).toList());
+        return page.map(summary -> favoritedIds.contains(summary.id()) ? summary.withFavorited(true) : summary);
     }
 
 }

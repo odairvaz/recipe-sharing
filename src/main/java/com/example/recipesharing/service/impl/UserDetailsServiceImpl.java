@@ -28,7 +28,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 () -> new UsernameNotFoundException("No user found with the email: " + email));
 
         Collection<? extends GrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"));
-        return new RecipeUserDetails(user.getFirstName() ,user.getEmail(), user.getPassword(), authorities);
+        return new RecipeUserDetails(user.getId(), user.getFirstName(), user.getEmail(), user.getPassword(),
+                user.isEnabled(), authorities);
     }
 
 }

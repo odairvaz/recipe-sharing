@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="flash_alerts">
+    <th:block th:each="key : ${ {'success', 'favoriteSuccess', 'reviewSuccess'} }">
+        <div class="alert alert-success alert-dismissible fade show" role="alert" th:if="${__${key}__}">
+            <span th:text="${__${key}__}"></span>
+            <button aria-label="Close" class="btn-close" data-bs-dismiss="alert" type="button"></button>
+        </div>
+    </th:block>
+    <th:block th:each="key : ${ {'error', 'favoriteError', 'reviewError'} }">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${__${key}__}">
+            <span th:text="${__${key}__}"></span>
+            <button aria-label="Close" class="btn-close" data-bs-dismiss="alert" type="button"></button>
+        </div>
+    </th:block>
+</div>
+</body>
+</html>
