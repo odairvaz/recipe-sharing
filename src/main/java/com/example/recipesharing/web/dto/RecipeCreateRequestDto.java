@@ -2,9 +2,11 @@ package com.example.recipesharing.web.dto;
 
 import com.example.recipesharing.persistense.model.enums.RecipeCategory;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 public record RecipeCreateRequestDto(
         @NotBlank(message = "Title cannot be blank")
+        @Size(max = 255, message = "Title is too long (max 255 characters)")
         String title,
 
         String description,
