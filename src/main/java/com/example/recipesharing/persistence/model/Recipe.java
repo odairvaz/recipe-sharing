@@ -1,6 +1,6 @@
-package com.example.recipesharing.persistense.model;
+package com.example.recipesharing.persistence.model;
 
-import com.example.recipesharing.persistense.model.enums.RecipeCategory;
+import com.example.recipesharing.persistence.model.enums.RecipeCategory;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;

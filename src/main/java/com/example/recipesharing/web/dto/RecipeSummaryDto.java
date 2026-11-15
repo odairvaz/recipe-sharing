@@ -1,6 +1,6 @@
 package com.example.recipesharing.web.dto;
 
-import com.example.recipesharing.persistense.model.enums.RecipeCategory;
+import com.example.recipesharing.persistence.model.enums.RecipeCategory;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;

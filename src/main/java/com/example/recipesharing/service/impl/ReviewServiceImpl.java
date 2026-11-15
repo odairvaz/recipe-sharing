@@ -1,10 +1,10 @@
 package com.example.recipesharing.service.impl;
 
-import com.example.recipesharing.persistense.model.Recipe;
-import com.example.recipesharing.persistense.model.Review;
-import com.example.recipesharing.persistense.model.User;
-import com.example.recipesharing.persistense.repository.IRecipeRepository;
-import com.example.recipesharing.persistense.repository.IReviewRepository;
+import com.example.recipesharing.persistence.model.Recipe;
+import com.example.recipesharing.persistence.model.Review;
+import com.example.recipesharing.persistence.model.User;
+import com.example.recipesharing.persistence.repository.IRecipeRepository;
+import com.example.recipesharing.persistence.repository.IReviewRepository;
 import com.example.recipesharing.service.IReviewService;
 import com.example.recipesharing.web.dto.ReviewSubmissionDto;
 import com.example.recipesharing.web.error.DuplicateReviewException;
@@ -17,16 +17,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class IReviewServiceImpl implements IReviewService {
+public class ReviewServiceImpl implements IReviewService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(IReviewServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReviewServiceImpl.class);
 
     private final IReviewRepository reviewRepository;
     private final IRecipeRepository recipeRepository;
     private final CacheManager cacheManager;
 
 
-    public IReviewServiceImpl(IReviewRepository reviewRepository, IRecipeRepository recipeRepository, CacheManager cacheManager) {
+    public ReviewServiceImpl(IReviewRepository reviewRepository, IRecipeRepository recipeRepository, CacheManager cacheManager) {
         this.reviewRepository = reviewRepository;
         this.recipeRepository = recipeRepository;
         this.cacheManager = cacheManager;

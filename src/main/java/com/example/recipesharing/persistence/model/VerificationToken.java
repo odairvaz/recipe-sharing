@@ -1,4 +1,4 @@
-package com.example.recipesharing.persistense.model;
+package com.example.recipesharing.persistence.model;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

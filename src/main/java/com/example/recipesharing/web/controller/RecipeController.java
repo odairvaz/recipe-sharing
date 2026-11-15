@@ -1,9 +1,9 @@
 package com.example.recipesharing.web.controller;
 
 
-import com.example.recipesharing.persistense.model.Recipe;
-import com.example.recipesharing.persistense.model.User;
-import com.example.recipesharing.persistense.model.enums.RecipeCategory;
+import com.example.recipesharing.persistence.model.Recipe;
+import com.example.recipesharing.persistence.model.User;
+import com.example.recipesharing.persistence.model.enums.RecipeCategory;
 import com.example.recipesharing.security.core.userdetails.RecipeUserDetails;
 import com.example.recipesharing.service.IFavoriteService;
 import com.example.recipesharing.service.IRecipeService;

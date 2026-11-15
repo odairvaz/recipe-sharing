@@ -1,6 +1,6 @@
 package com.example.recipesharing.registration.listener;
 
-import com.example.recipesharing.persistense.model.User;
+import com.example.recipesharing.persistence.model.User;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 

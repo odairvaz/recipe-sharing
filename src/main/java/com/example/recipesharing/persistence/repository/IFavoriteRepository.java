@@ -1,8 +1,8 @@
-package com.example.recipesharing.persistense.repository;
+package com.example.recipesharing.persistence.repository;
 
-import com.example.recipesharing.persistense.model.Favorite;
-import com.example.recipesharing.persistense.model.Recipe;
-import com.example.recipesharing.persistense.model.User;
+import com.example.recipesharing.persistence.model.Favorite;
+import com.example.recipesharing.persistence.model.Recipe;
+import com.example.recipesharing.persistence.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;

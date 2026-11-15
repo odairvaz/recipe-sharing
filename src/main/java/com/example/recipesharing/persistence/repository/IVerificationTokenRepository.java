@@ -1,7 +1,7 @@
-package com.example.recipesharing.persistense.repository;
+package com.example.recipesharing.persistence.repository;
 
 
-import com.example.recipesharing.persistense.model.VerificationToken;
+import com.example.recipesharing.persistence.model.VerificationToken;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

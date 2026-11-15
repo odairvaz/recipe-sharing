@@ -1,6 +1,6 @@
-package com.example.recipesharing.persistense.repository;
+package com.example.recipesharing.persistence.repository;
 
-import com.example.recipesharing.persistense.model.Review;
+import com.example.recipesharing.persistence.model.Review;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

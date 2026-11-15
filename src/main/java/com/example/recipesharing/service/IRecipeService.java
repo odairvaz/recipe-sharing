@@ -1,7 +1,7 @@
 package com.example.recipesharing.service;
 
-import com.example.recipesharing.persistense.model.Recipe;
-import com.example.recipesharing.persistense.model.User;
+import com.example.recipesharing.persistence.model.Recipe;
+import com.example.recipesharing.persistence.model.User;
 import com.example.recipesharing.web.dto.RecipeCreateRequestDto;
 import com.example.recipesharing.web.dto.RecipeDetailDto;
 import com.example.recipesharing.web.dto.RecipeSummaryDto;

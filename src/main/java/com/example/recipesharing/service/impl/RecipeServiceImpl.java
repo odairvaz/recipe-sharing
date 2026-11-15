@@ -1,8 +1,8 @@
 package com.example.recipesharing.service.impl;
 
-import com.example.recipesharing.persistense.model.Recipe;
-import com.example.recipesharing.persistense.model.User;
-import com.example.recipesharing.persistense.repository.IRecipeRepository;
+import com.example.recipesharing.persistence.model.Recipe;
+import com.example.recipesharing.persistence.model.User;
+import com.example.recipesharing.persistence.repository.IRecipeRepository;
 import com.example.recipesharing.service.IFavoriteService;
 import com.example.recipesharing.service.IFileStorageService;
 import com.example.recipesharing.service.IRecipeService;
@@ -28,9 +28,9 @@ import java.util.Optional;
 import java.util.Set;
 
 @Service
-public class IRecipeServiceImpl implements IRecipeService {
+public class RecipeServiceImpl implements IRecipeService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(IRecipeServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecipeServiceImpl.class);
 
     private final IRecipeRepository recipeRepository;
     private final IFileStorageService fileStorageService;
@@ -38,7 +38,7 @@ public class IRecipeServiceImpl implements IRecipeService {
     private final RecipeSummaryCache recipeSummaryCache;
     private final RecipeMapper recipeMapper;
 
-    public IRecipeServiceImpl(IRecipeRepository recipeRepository, IFileStorageService fileStorageService,
+    public RecipeServiceImpl(IRecipeRepository recipeRepository, IFileStorageService fileStorageService,
                               IFavoriteService favoriteService, RecipeSummaryCache recipeSummaryCache,
                               RecipeMapper recipeMapper) {
         this.recipeRepository = recipeRepository;

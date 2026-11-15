@@ -1,7 +1,7 @@
 package com.example.recipesharing.service.impl;
 
-import com.example.recipesharing.persistense.model.Recipe;
-import com.example.recipesharing.persistense.repository.IRecipeRepository;
+import com.example.recipesharing.persistence.model.Recipe;
+import com.example.recipesharing.persistence.repository.IRecipeRepository;
 import com.example.recipesharing.service.mapper.RecipeMapper;
 import com.example.recipesharing.web.dto.RecipeSummaryDto;
 import org.springframework.cache.annotation.Cacheable;
@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Cached, user-independent recipe listings. Every summary is returned with {@code isFavorited = false};
- * {@link IRecipeServiceImpl} applies the current user's favorites on top, so one cache entry can be
+ * {@link RecipeServiceImpl} applies the current user's favorites on top, so one cache entry can be
  * shared between all users.
  */
 @Component

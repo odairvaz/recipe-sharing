@@ -1,8 +1,8 @@
 package com.example.recipesharing.service.mapper;
 
-import com.example.recipesharing.persistense.model.Recipe;
-import com.example.recipesharing.persistense.model.Review;
-import com.example.recipesharing.persistense.model.User;
+import com.example.recipesharing.persistence.model.Recipe;
+import com.example.recipesharing.persistence.model.Review;
+import com.example.recipesharing.persistence.model.User;
 import com.example.recipesharing.web.dto.RecipeDetailDto;
 import com.example.recipesharing.web.dto.RecipeSummaryDto;
 import com.example.recipesharing.web.dto.ReviewDto;
