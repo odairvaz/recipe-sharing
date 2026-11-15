@@ -1,9 +1,9 @@
 package com.example.recipesharing.service.impl;
 
-import com.example.recipesharing.persistense.model.User;
-import com.example.recipesharing.persistense.model.VerificationToken;
-import com.example.recipesharing.persistense.repository.IUserRepository;
-import com.example.recipesharing.persistense.repository.IVerificationTokenRepository;
+import com.example.recipesharing.persistence.model.User;
+import com.example.recipesharing.persistence.model.VerificationToken;
+import com.example.recipesharing.persistence.repository.IUserRepository;
+import com.example.recipesharing.persistence.repository.IVerificationTokenRepository;
 import com.example.recipesharing.service.token.ActivationResult;
 import com.example.recipesharing.service.IFileStorageService;
 import com.example.recipesharing.service.IUserService;
@@ -24,9 +24,9 @@ import java.util.Optional;
 
 @Service
 @Transactional
-public class IUserServiceImpl implements IUserService {
+public class UserServiceImpl implements IUserService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(IUserServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final IUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -34,7 +34,7 @@ public class IUserServiceImpl implements IUserService {
     private final IFileStorageService fileStorageService;
 
 
-    public IUserServiceImpl(IUserRepository userRepository, PasswordEncoder passwordEncoder, IVerificationTokenRepository tokenRepository, IFileStorageService fileStorageService) {
+    public UserServiceImpl(IUserRepository userRepository, PasswordEncoder passwordEncoder, IVerificationTokenRepository tokenRepository, IFileStorageService fileStorageService) {
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
         this.passwordEncoder = passwordEncoder;
@@ -101,12 +101,18 @@ public class IUserServiceImpl implements IUserService {
 
         user.setEnabled(true);
         userRepository.save(user);
+        tokenRepository.delete(verificationToken);
         return ActivationResult.SUCCESS;
     }
 
     @Override
     public Optional<User> findUserByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    @Override
+    public Optional<User> findUserById(Long id) {
+        return userRepository.findById(id);
     }
 
     private boolean emailExists(final String email) {

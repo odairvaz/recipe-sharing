@@ -1,6 +1,6 @@
-package com.example.recipesharing.persistense.repository;
+package com.example.recipesharing.persistence.repository;
 
-import com.example.recipesharing.persistense.model.User;
+import com.example.recipesharing.persistence.model.User;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

@@ -1,4 +1,4 @@
-package com.example.recipesharing.persistense.model.enums;
+package com.example.recipesharing.persistence.model.enums;
 
 public enum RecipeCategory {
 

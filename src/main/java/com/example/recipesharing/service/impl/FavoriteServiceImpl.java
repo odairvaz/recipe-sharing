@@ -1,10 +1,10 @@
 package com.example.recipesharing.service.impl;
 
-import com.example.recipesharing.persistense.model.Favorite;
-import com.example.recipesharing.persistense.model.Recipe;
-import com.example.recipesharing.persistense.model.User;
-import com.example.recipesharing.persistense.repository.IFavoriteRepository;
-import com.example.recipesharing.persistense.repository.IRecipeRepository;
+import com.example.recipesharing.persistence.model.Favorite;
+import com.example.recipesharing.persistence.model.Recipe;
+import com.example.recipesharing.persistence.model.User;
+import com.example.recipesharing.persistence.repository.IFavoriteRepository;
+import com.example.recipesharing.persistence.repository.IRecipeRepository;
 import com.example.recipesharing.service.IFavoriteService;
 import com.example.recipesharing.service.mapper.RecipeMapper;
 import com.example.recipesharing.web.dto.RecipeSummaryDto;
@@ -21,15 +21,15 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-public class IFavoriteServiceImpl implements IFavoriteService {
+public class FavoriteServiceImpl implements IFavoriteService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(IFavoriteServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FavoriteServiceImpl.class);
 
     private final IFavoriteRepository favoritesRepository;
     private final IRecipeRepository recipeRepository;
     private final RecipeMapper recipeMapper;
 
-    public IFavoriteServiceImpl(IFavoriteRepository favoritesRepository,
+    public FavoriteServiceImpl(IFavoriteRepository favoritesRepository,
                                 IRecipeRepository recipeRepository,
                                 RecipeMapper recipeMapper) {
         this.favoritesRepository = favoritesRepository;

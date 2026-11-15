@@ -1,7 +1,7 @@
 package com.example.recipesharing.registration.listener;
 
 
-import com.example.recipesharing.persistense.model.User;
+import com.example.recipesharing.persistence.model.User;
 import com.example.recipesharing.service.IUserService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
+import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
@@ -51,7 +52,6 @@ public class RegistrationListener implements ApplicationListener<OnRegistrationC
         String confirmationUrl = buildConfirmationUrl(event.getAppUrl(), token);
         String emailContent = generateEmailContent(user, confirmationUrl);
         sendRegistrationConfirmationEmail(user.getEmail(), emailContent);
-        LOGGER.debug("Registration confirmation email sent to: {}", user.getEmail());
     }
 
     private String obtainVerificationToken(User user, String existingToken) {
@@ -86,8 +86,10 @@ public class RegistrationListener implements ApplicationListener<OnRegistrationC
             helper.setSubject(registrationEmailSubject);
             helper.setText(emailContent, true);
             mailSender.send(mimeMessage);
-        } catch (MessagingException ex) {
-            LOGGER.error("Unable to send email: ", ex);
+            LOGGER.debug("Registration confirmation email sent to: {}", recipient);
+        } catch (MessagingException | MailException ex) {
+            // The account is already saved at this point; don't fail the registration because the mail server is down.
+            LOGGER.error("Unable to send registration email to {}", recipient, ex);
         }
     }
 

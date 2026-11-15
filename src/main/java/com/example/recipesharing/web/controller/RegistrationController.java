@@ -1,6 +1,6 @@
 package com.example.recipesharing.web.controller;
 
-import com.example.recipesharing.persistense.model.User;
+import com.example.recipesharing.persistence.model.User;
 import com.example.recipesharing.registration.listener.OnRegistrationCompleteEvent;
 import com.example.recipesharing.service.token.ActivationResult;
 import com.example.recipesharing.service.IUserService;
@@ -59,7 +59,7 @@ public class RegistrationController {
             String applicationUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
             eventPublisher.publishEvent(new OnRegistrationCompleteEvent(registeredUser, applicationUrl, null));
         } catch (UserAlreadyExistException uaeEx) {
-            LOGGER.error("User email already exists: {}", registrationRequest.getEmail(), uaeEx);
+            LOGGER.debug("Registration attempt with existing email: {}", registrationRequest.getEmail());
             bindingResult.rejectValue("email", "error.user");
             return VIEW_REGISTRATION_FORM;
         } catch (RuntimeException ex) {

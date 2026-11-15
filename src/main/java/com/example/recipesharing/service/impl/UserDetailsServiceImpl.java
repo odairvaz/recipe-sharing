@@ -1,7 +1,7 @@
 package com.example.recipesharing.service.impl;
 
-import com.example.recipesharing.persistense.model.User;
-import com.example.recipesharing.persistense.repository.IUserRepository;
+import com.example.recipesharing.persistence.model.User;
+import com.example.recipesharing.persistence.repository.IUserRepository;
 import com.example.recipesharing.security.core.userdetails.RecipeUserDetails;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

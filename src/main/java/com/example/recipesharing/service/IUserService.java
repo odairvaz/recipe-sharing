@@ -1,6 +1,6 @@
 package com.example.recipesharing.service;
 
-import com.example.recipesharing.persistense.model.User;
+import com.example.recipesharing.persistence.model.User;
 import com.example.recipesharing.service.token.ActivationResult;
 import com.example.recipesharing.web.dto.UserDto;
 import com.example.recipesharing.web.error.UserAlreadyExistException;
@@ -19,5 +19,7 @@ public interface IUserService {
     ActivationResult activateUserByToken(String token);
 
     Optional<User> findUserByEmail(String email);
+
+    Optional<User> findUserById(Long id);
 
 }

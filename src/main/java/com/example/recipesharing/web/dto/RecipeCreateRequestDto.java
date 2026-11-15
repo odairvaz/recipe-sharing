@@ -1,6 +1,6 @@
 package com.example.recipesharing.web.dto;
 
-import com.example.recipesharing.persistense.model.enums.RecipeCategory;
+import com.example.recipesharing.persistence.model.enums.RecipeCategory;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 

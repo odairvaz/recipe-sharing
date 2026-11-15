@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" layout:decorate="~{layout/main_layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Page not found</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="text-center py-5">
+        <h1 class="display-4">404</h1>
+        <p class="lead">The page or recipe you are looking for doesn't exist.</p>
+        <a class="btn btn-primary" th:href="@{/}">Back to recipes</a>
+    </div>
+</div>
+</body>
+</html>
