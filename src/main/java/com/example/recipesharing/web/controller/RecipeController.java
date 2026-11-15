@@ -16,6 +16,7 @@ import com.example.recipesharing.web.dto.ReviewSubmissionDto;
 import com.example.recipesharing.web.error.DuplicateReviewException;
 import com.example.recipesharing.web.error.InvalidFileException;
 import com.example.recipesharing.web.error.ResourceNotFoundException;
+import com.example.recipesharing.web.util.RedirectUtils;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,15 +25,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import static com.example.recipesharing.constants.ViewName.*;
@@ -56,15 +56,10 @@ public class RecipeController {
 
     @GetMapping({"/", "/home"})
     public String home(Model model,
-                       @PageableDefault(size = 2,
-                       sort = "createdAt",
-                       direction = Sort.Direction.DESC)
-                       Pageable pageable, @AuthenticationPrincipal RecipeUserDetails currentUserDetails) {
+                       @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+                       @AuthenticationPrincipal RecipeUserDetails currentUserDetails) {
 
-        User user = userService.findUserByEmail(currentUserDetails.getEmail())
-                .orElseThrow(() -> new RuntimeException("Authenticated user not found in database"));
-
-        Page<RecipeSummaryDto> recipeDtoPage = recipeService.findAllSummaries(pageable, user);
+        Page<RecipeSummaryDto> recipeDtoPage = recipeService.findAllSummaries(pageable, currentUser(currentUserDetails));
         model.addAttribute("recipePage", recipeDtoPage);
         return VIEW_HOME;
     }
@@ -79,7 +74,7 @@ public class RecipeController {
     @PostMapping("/recipe/add")
     public String addRecipe(@ModelAttribute("recipeRequest") @Valid RecipeCreateRequestDto recipeRequest,
                             BindingResult bindingResult,
-                            @RequestParam("recipeImage") MultipartFile recipeImage,
+                            @RequestParam(value = "recipeImage", required = false) MultipartFile recipeImage,
                             @AuthenticationPrincipal RecipeUserDetails currentUserDetails,
                             RedirectAttributes redirectAttributes,
                             Model model) {
@@ -90,9 +85,7 @@ public class RecipeController {
         }
 
         try {
-            User author = userService.findUserByEmail(currentUserDetails.getEmail())
-                    .orElseThrow(() -> new RuntimeException("Authenticated user not found in database"));
-            Recipe savedRecipe = recipeService.addNewRecipe(recipeRequest, recipeImage, author);
+            Recipe savedRecipe = recipeService.addNewRecipe(recipeRequest, recipeImage, currentUser(currentUserDetails));
             redirectAttributes.addFlashAttribute("success", "Recipe '" + savedRecipe.getTitle() + "' added successfully!");
             LOGGER.info("Successfully added recipe ID: {}", savedRecipe.getId());
             return "redirect:/home";
@@ -100,26 +93,12 @@ public class RecipeController {
             model.addAttribute("allCategories", RecipeCategory.values());
             model.addAttribute("error", e.getMessage());
             return VIEW_RECIPE_FORM;
-        } catch (Exception e) {
-            LOGGER.error("Error adding recipe: {}", e.getMessage(), e);
-            model.addAttribute("allCategories", RecipeCategory.values());
-            model.addAttribute("error", "An error occurred while saving the recipe. Please try again.");
-            return VIEW_RECIPE_FORM;
         }
     }
 
     @GetMapping("/recipe/{recipeId}")
     public String recipeDetail(Model model, @PathVariable Long recipeId) {
-        LOGGER.debug("Requesting recipe detail page for ID: {}", recipeId);
-
-        RecipeDetailDto recipeDto = recipeService.findRecipeDetailById(recipeId)
-                .orElseThrow(() -> {
-                    LOGGER.warn("Recipe not found for ID: {}", recipeId);
-                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "Recipe not found");
-                });
-
-        model.addAttribute("recipe", recipeDto);
-
+        model.addAttribute("recipe", findRecipeDetail(recipeId));
         if (!model.containsAttribute("newReview")) {
             model.addAttribute("newReview", ReviewSubmissionDto.empty());
         }
@@ -134,35 +113,17 @@ public class RecipeController {
                             RedirectAttributes redirectAttributes,
                             Model model) {
 
-        LOGGER.debug("Received review submission for recipe ID {}: {}", recipeId, reviewDto);
-
-        if (currentUserDetails == null) {
-            LOGGER.warn("Unauthenticated user attempted to submit review for recipe ID {}", recipeId);
-            redirectAttributes.addFlashAttribute("error", "You must be logged in to submit a review.");
-            return "redirect:/login";
-        }
-
         if (bindingResult.hasErrors()) {
-            LOGGER.warn("Validation errors submitting review for recipe ID {}: {}", recipeId, bindingResult.getAllErrors());
-            RecipeDetailDto recipeDto = recipeService.findRecipeDetailById(recipeId)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recipe not found"));
-            model.addAttribute("recipe", recipeDto);
+            LOGGER.debug("Validation errors submitting review for recipe ID {}: {}", recipeId, bindingResult.getAllErrors());
+            model.addAttribute("recipe", findRecipeDetail(recipeId));
             return VIEW_RECIPE_DETAIL;
         }
 
         try {
-            User author = userService.findUserByEmail(currentUserDetails.getEmail())
-                    .orElseThrow(() -> new RuntimeException("Authenticated user not found:"));
-
-            reviewService.addReview(recipeId, reviewDto, author);
+            reviewService.addReview(recipeId, reviewDto, currentUser(currentUserDetails));
             redirectAttributes.addFlashAttribute("reviewSuccess", "Your review has been submitted successfully!");
-            LOGGER.info("Review added successfully for recipe ID {} by user {}", recipeId, author.getEmail());
-
         } catch (DuplicateReviewException e) {
             redirectAttributes.addFlashAttribute("reviewError", e.getMessage());
-        } catch (Exception e) {
-            LOGGER.error("Unexpected error adding review for recipe ID {}: {}", recipeId, e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("reviewError", "An unexpected error occurred while submitting your review.");
         }
         return "redirect:/recipe/" + recipeId;
     }
@@ -176,14 +137,11 @@ public class RecipeController {
         try {
             reviewService.deleteReview(reviewId, currentUserDetails.getEmail());
             redirectAttributes.addFlashAttribute("reviewSuccess", "Review deleted successfully.");
-            LOGGER.debug("Review ID {} deleted successfully by user {}", reviewId, currentUserDetails.getEmail());
-
         } catch (AccessDeniedException e) {
             LOGGER.warn("Unauthorized attempt by user {} to delete review ID {}", currentUserDetails.getEmail(), reviewId);
             redirectAttributes.addFlashAttribute("reviewError", "Could not delete review: You are not the owner.");
-        } catch (Exception e) {
-            LOGGER.error("Error deleting review ID {}: {}", reviewId, e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("reviewError", "An error occurred while deleting the review.");
+        } catch (ResourceNotFoundException e) {
+            redirectAttributes.addFlashAttribute("reviewError", "That review no longer exists.");
         }
 
         return "redirect:/recipe/" + recipeId;
@@ -195,17 +153,9 @@ public class RecipeController {
                                  RedirectAttributes redirectAttributes,
                                  @RequestHeader(value = HttpHeaders.REFERER, required = false) final String referer) {
 
-        if (currentUserDetails == null) {
-            redirectAttributes.addFlashAttribute("error", "Please log in to manage favorites.");
-            return "redirect:/login";
-        }
-        User user = userService.findUserByEmail(currentUserDetails.getEmail())
-                .orElseThrow(() -> new RuntimeException("Authenticated user not found in database"));
-
+        User user = currentUser(currentUserDetails);
         try {
-            boolean isCurrentlyFavorited = favoriteService.isRecipeFavoritedByUser(recipeId, user);
-
-            if (isCurrentlyFavorited) {
+            if (favoriteService.isRecipeFavoritedByUser(recipeId, user)) {
                 favoriteService.removeFavorite(recipeId, user);
                 redirectAttributes.addFlashAttribute("favoriteSuccess", "Recipe removed from favorites.");
             } else {
@@ -215,31 +165,19 @@ public class RecipeController {
         } catch (ResourceNotFoundException e) {
             LOGGER.warn("Toggle favorite failed: {}", e.getMessage());
             redirectAttributes.addFlashAttribute("favoriteError", "Could not change favorite status: Resource not found.");
-        } catch (Exception e) {
-            LOGGER.error("Error toggling favorite for recipe ID {} by user {}", recipeId, user, e);
-            redirectAttributes.addFlashAttribute("favoriteError", "An error occurred while updating favorites.");
         }
 
-        String redirectUrl = (referer != null && !referer.contains("/login")) ? referer : "/recipe/" + recipeId;
-        return "redirect:" + redirectUrl;
+        return "redirect:" + RedirectUtils.safeLocalPath(referer, "/recipe/" + recipeId);
     }
 
     @GetMapping("/my-favorites")
     public String myFavorites(Model model,
                               @AuthenticationPrincipal RecipeUserDetails currentUserDetails,
-                              @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-                              RedirectAttributes redirectAttributes) {
+                              @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        if (currentUserDetails == null) {
-            redirectAttributes.addFlashAttribute("error", "Please log in to view your favorites.");
-            return "redirect:/login";
-        }
-        User user = userService.findUserByEmail(currentUserDetails.getEmail())
-                .orElseThrow(() -> new RuntimeException("Authenticated user not found in database"));
-
-        Page<RecipeSummaryDto> favoriteRecipePage = favoriteService.findFavoritedRecipesByUser(user, pageable);
+        Page<RecipeSummaryDto> favoriteRecipePage = favoriteService.findFavoritedRecipesByUser(currentUser(currentUserDetails), pageable);
         model.addAttribute("favoriteRecipePage", favoriteRecipePage);
-        return "favorite/user_favorite";
+        return VIEW_USER_FAVORITES;
     }
 
     @GetMapping("/search")
@@ -248,25 +186,25 @@ public class RecipeController {
                                 @AuthenticationPrincipal RecipeUserDetails currentUserDetails,
                                 @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        Page<RecipeSummaryDto> recipePage;
-        User user = null;
-
-        if (currentUserDetails != null) {
-            user = userService.findUserByEmail(currentUserDetails.getEmail())
-                    .orElseThrow(() -> new RuntimeException("Authenticated user not found in database"));
-        }
-
+        Page<RecipeSummaryDto> recipePage = Page.empty(pageable);
         if (keyword != null && !keyword.isBlank()) {
             LOGGER.debug("Performing search for keyword: {}", keyword);
-            recipePage = recipeService.searchRecipes(keyword, pageable, user);
+            recipePage = recipeService.searchRecipes(keyword, pageable, currentUser(currentUserDetails));
             model.addAttribute("keyword", keyword);
-        } else {
-            LOGGER.debug("Search keyword is empty, displaying empty results.");
-            recipePage = Page.empty(pageable);
         }
 
         model.addAttribute("recipePage", recipePage);
-        return "recipe/search_results";
+        return VIEW_SEARCH_RESULTS;
+    }
+
+    private User currentUser(RecipeUserDetails currentUserDetails) {
+        return userService.findUserById(currentUserDetails.getId())
+                .orElseThrow(() -> new UsernameNotFoundException("Authenticated user no longer exists: " + currentUserDetails.getEmail()));
+    }
+
+    private RecipeDetailDto findRecipeDetail(Long recipeId) {
+        return recipeService.findRecipeDetailById(recipeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Recipe", "id", recipeId));
     }
 
 }

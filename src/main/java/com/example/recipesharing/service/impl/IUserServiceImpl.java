@@ -101,12 +101,18 @@ public class IUserServiceImpl implements IUserService {
 
         user.setEnabled(true);
         userRepository.save(user);
+        tokenRepository.delete(verificationToken);
         return ActivationResult.SUCCESS;
     }
 
     @Override
     public Optional<User> findUserByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    @Override
+    public Optional<User> findUserById(Long id) {
+        return userRepository.findById(id);
     }
 
     private boolean emailExists(final String email) {

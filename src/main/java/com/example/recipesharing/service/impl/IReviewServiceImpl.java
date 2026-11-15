@@ -75,7 +75,7 @@ public class IReviewServiceImpl implements IReviewService {
         Long recipeId = review.getRecipe().getId();
         reviewRepository.delete(review);
         evictRecipeDetailCache(recipeId);
-        LOGGER.info("Deleted review ID {} — evicted recipeDetail::{} from cache", reviewId, recipeId);
+        LOGGER.info("Deleted review ID {} and evicted recipeDetail::{} from cache", reviewId, recipeId);
     }
 
     private void evictRecipeDetailCache(Long recipeId) {

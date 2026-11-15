@@ -18,5 +18,12 @@ public final class ViewName {
     //Recipe view
     public static final String VIEW_RECIPE_FORM = "recipe/form";
     public static final String VIEW_RECIPE_DETAIL = "recipe/recipe_detail";
+    public static final String VIEW_SEARCH_RESULTS = "recipe/search_results";
+
+    //Favorite view
+    public static final String VIEW_USER_FAVORITES = "favorite/user_favorite";
+
+    //Auth view
+    public static final String VIEW_LOGIN = "login/form";
 
 }

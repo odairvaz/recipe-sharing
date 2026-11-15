@@ -20,4 +20,6 @@ public interface IUserService {
 
     Optional<User> findUserByEmail(String email);
 
+    Optional<User> findUserById(Long id);
+
 }
