@@ -49,7 +49,7 @@ public class RecipeServiceImpl implements IRecipeService {
     }
 
     @Override
-    @Cacheable(value = "recipeDetail", key = "#recipeId")
+    @Cacheable(value = "recipeDetail", key = "#recipeId", unless = "#result == null")
     @Transactional(readOnly = true)
     public Optional<RecipeDetailDto> findRecipeDetailById(Long recipeId) {
         return recipeRepository.findDetailById(recipeId).map(recipeMapper::toDetailDto);
