@@ -13,19 +13,10 @@
     <version>0.0.1-SNAPSHOT</version>
     <packaging>war</packaging>
     <name>recipe-sharing</name>
-    <description>recipe-sharing</description>
-    <url/>
-    <licenses>
-        <license/>
-    </licenses>
-    <developers>
-        <developer/>
-    </developers>
+    <description>Recipe sharing web application built with Spring Boot</description>
+    <url>https://github.com/odairvaz/recipe-sharing</url>
     <scm>
-        <connection/>
-        <developerConnection/>
-        <tag/>
-        <url/>
+        <url>https://github.com/odairvaz/recipe-sharing</url>
     </scm>
     <properties>
         <java.version>17</java.version>
@@ -72,19 +63,17 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.32</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
-        <groupId>org.flywaydb</groupId>
+            <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
-            <version>10.7.1</version>
         </dependency>
 
         <dependency>
@@ -97,18 +86,6 @@
             <artifactId>passay</artifactId>
             <version>1.6.4</version>
         </dependency>
-
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>32.0.1-android</version>
-        </dependency>
-
-        <!--<dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <scope>runtime</scope>
-        </dependency>-->
 
         <dependency>
             <groupId>org.springframework.boot</groupId>

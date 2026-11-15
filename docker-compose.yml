@@ -9,6 +9,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d recipe_sharing"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   redis:
     image: redis:7-alpine
@@ -17,6 +22,36 @@ services:
     volumes:
       - redis_data:/data
 
+  # Catches all outgoing email locally; web UI on http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  app:
+    build: .
+    profiles: ["app"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      mailpit:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      datasourceUrl: jdbc:postgresql://postgres:5432/recipe_sharing
+      redisHost: redis
+      mailHost: mailpit
+      storageBaseLocation: /app/uploads
+      logDir: /app/logs
+    ports:
+      - "8081:8081"
+    volumes:
+      - uploads:/app/uploads
+
 volumes:
   postgres_data:
   redis_data:
+  uploads:

@@ -34,6 +34,7 @@ public class Review {
     @Max(5)
     private int rating;
 
+    @Column(length = 1000)
     private String comment;
 
     @Column(name ="created_at")
