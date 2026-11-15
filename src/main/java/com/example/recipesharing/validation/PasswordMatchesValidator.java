@@ -5,6 +5,8 @@ import com.example.recipesharing.web.dto.UserDto;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
+import java.util.Objects;
+
 public class PasswordMatchesValidator implements ConstraintValidator<PasswordMatches, Object> {
 
     private String message;
@@ -19,9 +21,9 @@ public class PasswordMatchesValidator implements ConstraintValidator<PasswordMat
         boolean passwordsMatch = false;
 
         if (obj instanceof UserDto userDto) {
-            passwordsMatch = userDto.getPassword().equals(userDto.getMatchingPassword());
+            passwordsMatch = Objects.equals(userDto.getPassword(), userDto.getMatchingPassword());
         } else if (obj instanceof PasswordDto passwordDto) {
-            passwordsMatch = passwordDto.getPassword().equals(passwordDto.getMatchingPassword());
+            passwordsMatch = Objects.equals(passwordDto.getPassword(), passwordDto.getMatchingPassword());
         }
 
         if (!passwordsMatch) {

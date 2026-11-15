@@ -5,6 +5,7 @@ import com.example.recipesharing.persistense.model.Recipe;
 import com.example.recipesharing.persistense.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -27,7 +28,8 @@ public interface IFavoriteRepository extends JpaRepository<Favorite, Long> {
 
     void deleteByUserIdAndRecipeId(Long userId, Long recipeId);
 
-    Page<Favorite> findByUserOrderByCreatedAtDesc(User user, Pageable pageable);
+    @EntityGraph(attributePaths = {"recipe", "recipe.author"})
+    Page<Favorite> findByUser(User user, Pageable pageable);
 
     @Query("SELECT f.recipe.id FROM Favorite f WHERE f.user = :user AND f.recipe.id IN :recipeIds")
     Set<Long> findFavoritedRecipeIdsByUserInList(@Param("user") User user, @Param("recipeIds") List<Long> recipeIds);

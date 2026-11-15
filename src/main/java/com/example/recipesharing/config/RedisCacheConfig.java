@@ -1,6 +1,6 @@
 package com.example.recipesharing.config;
 
-
+import com.example.recipesharing.service.impl.RecipeSummaryCache;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,7 +25,8 @@ public class RedisCacheConfig {
 
         Map<String, RedisCacheConfiguration> perCacheConfig = new HashMap<>();
         perCacheConfig.put("recipeDetail", defaultConfig.entryTtl(Duration.ofMinutes(15)));
-        perCacheConfig.put("searchResults", defaultConfig.entryTtl(Duration.ofMinutes(5)));
+        perCacheConfig.put(RecipeSummaryCache.RECIPE_SUMMARIES, defaultConfig.entryTtl(Duration.ofMinutes(5)));
+        perCacheConfig.put(RecipeSummaryCache.SEARCH_RESULTS, defaultConfig.entryTtl(Duration.ofMinutes(5)));
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfig)

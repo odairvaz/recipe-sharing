@@ -13,6 +13,8 @@ import com.example.recipesharing.web.dto.RecipeCreateRequestDto;
 import com.example.recipesharing.web.dto.RecipeDetailDto;
 import com.example.recipesharing.web.dto.RecipeSummaryDto;
 import com.example.recipesharing.web.dto.ReviewSubmissionDto;
+import com.example.recipesharing.web.error.DuplicateReviewException;
+import com.example.recipesharing.web.error.InvalidFileException;
 import com.example.recipesharing.web.error.ResourceNotFoundException;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -83,6 +85,7 @@ public class RecipeController {
                             Model model) {
 
         if (bindingResult.hasErrors()) {
+            model.addAttribute("allCategories", RecipeCategory.values());
             return VIEW_RECIPE_FORM;
         }
 
@@ -90,13 +93,17 @@ public class RecipeController {
             User author = userService.findUserByEmail(currentUserDetails.getEmail())
                     .orElseThrow(() -> new RuntimeException("Authenticated user not found in database"));
             Recipe savedRecipe = recipeService.addNewRecipe(recipeRequest, recipeImage, author);
-            redirectAttributes.addFlashAttribute("success", "Ripe '" + savedRecipe.getTitle() + "' added successfully!");
+            redirectAttributes.addFlashAttribute("success", "Recipe '" + savedRecipe.getTitle() + "' added successfully!");
             LOGGER.info("Successfully added recipe ID: {}", savedRecipe.getId());
-            return VIEW_HOME;
+            return "redirect:/home";
+        } catch (InvalidFileException e) {
+            model.addAttribute("allCategories", RecipeCategory.values());
+            model.addAttribute("error", e.getMessage());
+            return VIEW_RECIPE_FORM;
         } catch (Exception e) {
             LOGGER.error("Error adding recipe: {}", e.getMessage(), e);
-            model.addAttribute("recipeRequest", recipeRequest);
-            model.addAttribute("error", "An error occurred while saving the recipe. Please try again. Error: " + e.getMessage());
+            model.addAttribute("allCategories", RecipeCategory.values());
+            model.addAttribute("error", "An error occurred while saving the recipe. Please try again.");
             return VIEW_RECIPE_FORM;
         }
     }
@@ -151,6 +158,8 @@ public class RecipeController {
             redirectAttributes.addFlashAttribute("reviewSuccess", "Your review has been submitted successfully!");
             LOGGER.info("Review added successfully for recipe ID {} by user {}", recipeId, author.getEmail());
 
+        } catch (DuplicateReviewException e) {
+            redirectAttributes.addFlashAttribute("reviewError", e.getMessage());
         } catch (Exception e) {
             LOGGER.error("Unexpected error adding review for recipe ID {}: {}", recipeId, e.getMessage(), e);
             redirectAttributes.addFlashAttribute("reviewError", "An unexpected error occurred while submitting your review.");

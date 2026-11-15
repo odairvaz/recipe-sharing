@@ -14,4 +14,6 @@ public interface IReviewRepository extends JpaRepository<Review, Long> {
     @Query("SELECT r FROM Review r JOIN FETCH r.user WHERE r.id = :id")
     Optional<Review> findByIdFetchingUser(@Param("id") Long id);
 
+    boolean existsByUserIdAndRecipeId(Long userId, Long recipeId);
+
 }

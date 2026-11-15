@@ -7,17 +7,25 @@ import java.util.Collection;
 
 public class RecipeUserDetails implements UserDetails {
 
-    private String username;
-    private String email;
-    private String password;
-    private Collection<? extends GrantedAuthority> authorities;
+    private final Long id;
+    private final String username;
+    private final String email;
+    private final String password;
+    private final boolean enabled;
+    private final Collection<? extends GrantedAuthority> authorities;
 
-    public RecipeUserDetails(String username, String email, String password,
-                               Collection<? extends GrantedAuthority> authorities) {
+    public RecipeUserDetails(Long id, String username, String email, String password, boolean enabled,
+                             Collection<? extends GrantedAuthority> authorities) {
+        this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
+        this.enabled = enabled;
         this.authorities = authorities;
+    }
+
+    public Long getId() {
+        return id;
     }
 
     @Override
@@ -32,6 +40,11 @@ public class RecipeUserDetails implements UserDetails {
 
     public String getEmail() {
         return email;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
     }
 
     @Override

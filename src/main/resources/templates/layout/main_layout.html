@@ -8,6 +8,7 @@
 <header th:replace="~{fragments/navbar :: navbar}"></header>
 
 <main class="container mt-4 mb-5 flex-grow-1">
+    <div th:replace="~{fragments/alerts :: flash_alerts}"></div>
     <div layout:fragment="content">
         <p>Default page content goes here if specific page doesn't provide it.</p>
     </div>
